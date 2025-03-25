@@ -1,12 +1,11 @@
 // src/routes/RechargeRoutes.mjs
 import express from 'express';
 import RechargeController from '../controllers/RechargeController.mjs';
-import { uploadImages } from '../project_setup/Utils.mjs';
 
 const router = express.Router();
 
 // POST /Route to create a new recharge request by userId
-router.post('/createRechargeByUserId/:userId', uploadImages.single('paymentProof'), RechargeController.createRechargeByUserId);
+router.post('/createRechargeByUserId/:userId', RechargeController.createRechargeByUserId);
 
 // GET /Route to get all the recharges
 router.get('/getAllRecharges', RechargeController.getAllRecharges);
