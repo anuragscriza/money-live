@@ -2,7 +2,6 @@
 import express from "express";
 import cors from "cors";
 import cookieParser from 'cookie-parser';
-console.log("testing");
 import * as Routes from "../routes/AllRoutes.mjs";
 
 

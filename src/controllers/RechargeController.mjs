@@ -73,7 +73,8 @@ class RechargeController {
 
     static async rechargeCreateValidation(data) {
         const { transactionId, amount } = data.body;
-        const { userId } = data.params;
+        // console.log("user", data.user);
+        const userId = data.user.userId;
 
         await CommonHandler.validateRequiredFields({ transactionId, amount });
         await CommonHandler.validateSixDigitIdFormat(userId);
@@ -125,6 +126,26 @@ class RechargeController {
         const updateRecharge = await RechargeRepository.updateRechargeByRechargeId(rechargeId, { status, bonusAmount });
 
         return updateRecharge;
+    }
+
+    static async getAllUserRecharges(req, res) {
+        try {
+            const userId = req.user.userId
+            console.log("userId -- ", userId);
+            const recharges = await RechargeRepository.getUserRecharge(userId);
+            const rechargeData = recharges.map(recharge => ({
+                amount: recharge.amount,
+                transactionId: recharge.transactionId,
+                status: recharge.status,
+                date: new Date(recharge.createdAt).toLocaleString("en-GB", {
+                    year: "numeric", month: "long", day: "numeric"
+                }),
+
+            }));
+            res.status(200).json({ statusCode: 200, success: true, message: 'All recharges fetched successfully', data: rechargeData });
+        } catch (error) {
+            CommonHandler.catchError(error, res);
+        }
     }
 }
 

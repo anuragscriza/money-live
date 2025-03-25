@@ -1,14 +1,16 @@
 // src/routes/RechargeRoutes.mjs
 import express from 'express';
 import RechargeController from '../controllers/RechargeController.mjs';
+import Middleware from '../project_setup/Middleware.mjs'
+
 
 const router = express.Router();
 
 // POST /Route to create a new recharge request by userId
-router.post('/createRechargeByUserId/:userId', RechargeController.createRechargeByUserId);
+router.post('/createRecharge', Middleware.user, RechargeController.createRechargeByUserId);
 
 // GET /Route to get all the recharges
-router.get('/getAllRecharges', RechargeController.getAllRecharges);
+router.get('/getAllRecharges', Middleware.user, RechargeController.getAllUserRecharges);
 
 // GET /Route to get a recharge by rechargeId
 router.get('/getRechargeByRechargeId/:rechargeId', RechargeController.getRechargeByRechargeId);

@@ -10,9 +10,9 @@ class RechargeRepository {
 
     static async getRechargeByRechargeId(rechargeId) { return await Recharge.findOne({ rechargeId }); }
 
-    static async updateRechargeByRechargeId(rechargeId, status) { return await Recharge.findOneAndUpdate({rechargeId}, status, { new: true }); }
+    static async updateRechargeByRechargeId(rechargeId, status) { return await Recharge.findOneAndUpdate({ rechargeId }, status, { new: true }); }
 
-    static async deleteRechargeByRechargeId(rechargeId) { return await Recharge.findOneAndDelete({rechargeId}); }
+    static async deleteRechargeByRechargeId(rechargeId) { return await Recharge.findOneAndDelete({ rechargeId }); }
 
     static async filterRecharges(filterParams, options, req) {
         const query = {};
@@ -33,6 +33,9 @@ class RechargeRepository {
         }
         return await paginate(Recharge, query, options.page, options.limit, req);
     }
+
+    static async getUserRecharge(userId) { return await Recharge.find({ userId: userId }).sort({ createdAt: -1 }); }
+
 }
 
 export default RechargeRepository;
