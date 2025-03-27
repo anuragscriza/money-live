@@ -1,6 +1,14 @@
 // src/controllers/UploadCharactersController.mjs
 import UploadCharactersRepository from "../repositories/CharactersRepository.mjs";
 import { CommonHandler, ValidationError, NotFoundError } from './CommonHandler.mjs'
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+// Fix `__dirname` since it's not available in ES modules
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
 
 class CharactersController {
     static async createUploadCharacters(req, res) {
@@ -14,12 +22,59 @@ class CharactersController {
         }
     }
 
+    // static async getAllUploadCharacters(req, res) {
+    //     try {
+    //         const charactersList = await UploadCharactersRepository.getAllUploadCharacters();
+    //         // const uploadCharacters = await UploadCharactersRepository.filterUploadCharacters(filterParams);
+    //         res.status(200).json({ status: 200, success: true, message: 'characters fetched successfully', charactersList });
+    //     } catch (error) {
+    //         CommonHandler.catchError(error, res);
+    //     }
+    // }
+
     static async getAllUploadCharacters(req, res) {
         try {
             const charactersList = await UploadCharactersRepository.getAllUploadCharacters();
-            // const uploadCharacters = await UploadCharactersRepository.filterUploadCharacters(filterParams);
-            res.status(200).json({ status: 200, success: true, message: 'characters fetched successfully', charactersList });
+
+            // Define folder for saving images
+            const folderPath = path.join(__dirname, '../../uploads/characters');
+
+            // Ensure the folder exists
+            if (!fs.existsSync(folderPath)) {
+                fs.mkdirSync(folderPath, { recursive: true });
+            }
+
+            // Process each character
+            for (let i = 0; i < charactersList.length; i++) {
+                let character = charactersList[i];
+
+                if (character.image) {
+                    // Check if the image is Base64 and clean it
+                    const base64Data = character.image.replace(/^data:image\/\w+;base64,/, "");
+                    const imageBuffer = Buffer.from(base64Data, 'base64');
+
+                    // Generate a unique filename
+                    const filename = `${character.name}.png`;
+                    const outputPath = path.join(folderPath, filename);
+
+                    // Save the image file
+                    await fs.promises.writeFile(outputPath, imageBuffer);
+
+                    // Update the character object with the new image path
+                    character.image = `/uploads/characters/${filename}`;
+                }
+            }
+
+            // Send response with updated image paths
+            res.status(200).json({
+                status: 200,
+                success: true,
+                message: 'Characters fetched and images processed successfully',
+                charactersList
+            });
+
         } catch (error) {
+            console.error("Error processing characters:", error);
             CommonHandler.catchError(error, res);
         }
     }
