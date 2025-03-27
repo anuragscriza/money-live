@@ -58,21 +58,19 @@ class BankAccountController {
   // }
 
   // Get All Bank Accounts by User ID
+
   async getAllAccount(req, res) {
     try {
-      const { userId } = req.params; // Assuming userId is sent as a route parameter
+      const { userId } = req.user; // Extract userId from token
+
       if (!userId) {
-        return res.status(400).json({ error: "User ID is required" });
+        return res.status(403).json({ error: "Unauthorized: User ID not found in token" });
       }
 
-      const accounts = await BankAccountRepository.getAllAccountByUserId(
-        userId
-      );
+      const accounts = await BankAccountRepository.getAllAccounts(userId); 
 
       if (!accounts || accounts.length === 0) {
-        return res
-          .status(404)
-          .json({ message: "No accounts found for this user" });
+        return res.status(404).json({ message: "No accounts found for this user" });
       }
 
       res.json(accounts);
@@ -82,4 +80,4 @@ class BankAccountController {
   }
 }
 
-export default new BankAccountController();
+export default new BankAccountController(); 

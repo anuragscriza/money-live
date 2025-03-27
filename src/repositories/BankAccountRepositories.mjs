@@ -1,39 +1,30 @@
-// import BankAccount from "../models/BankAccountModel.mjs";
-
-// class BankAccountRepository {
-//   async create(data) {
-//     return await BankAccount.create(data);
-//   }
-
-//   async update(id, data) {
-//     return await BankAccount.findByIdAndUpdate(id, data, { new: true });
-//   }
-// }
-
-// export default new BankAccountRepository();
-
 import BankAccount from "../models/BankAccountModel.mjs";
 
 class BankAccountRepository {
   
   async create(data) {
-    console.log(data)
+    console.log("Creating Bank Account:", data);
     return await BankAccount.create(data);
   }
 
   async update(userId, data) {
     return await BankAccount.findOneAndUpdate({ userId }, data, {
       new: true,
+      runValidators: true,
     });
   }
 
-  async getById(userId) {
+  async getByUserId(userId) {
     return await BankAccount.findOne({ userId });
   }
 
-  async getAll() {
+  async getAllAccounts() {
+    return await BankAccount.find({});
+  }
+
+  async getAllAccountsByUserId(userId) { // ✅ Ensure this method exists
     return await BankAccount.find({ userId });
   }
 }
 
-export default new BankAccountRepository();
+export default new BankAccountRepository(); // ✅ Ensure this is a default export
