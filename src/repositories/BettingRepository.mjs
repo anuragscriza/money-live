@@ -129,6 +129,16 @@ class BettingRepository {
         );
     }
 
+    static async bettingHistory(userId) {
+        return await Betting.find({
+            userId: userId,
+            gameStatus: "Complete",
+            characterStatus: "Winner",
+        }).sort({ createdAt: -1 });;
+    }
+
 }
+
+
 
 export default BettingRepository;  

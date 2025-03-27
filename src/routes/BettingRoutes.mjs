@@ -1,11 +1,12 @@
 //src/routes/BettingRoutes.mjs
 import express from 'express';
 import BettingController from '../controllers/BettingController.mjs';
+import Middleware from '../project_setup/Middleware.mjs'
 
 const router = express.Router();
 
 // POST /Route to create a new Betting
-router.post('/createBetting', BettingController.createBetting);
+router.post('/createBetting', Middleware.user, BettingController.createBetting);
 
 // GET /Route to get a latest Betting by user id
 router.get('/getBettingDetails', BettingController.getDetailsForLatestUserBettingId);
@@ -32,5 +33,7 @@ router.delete('/deleteBettingById/:id', BettingController.deleteBettingById);
 // get betting winner
 router.get('/getBettingStatus', BettingController.getBettingStatus);
 
+//get betting history
+router.get('/getBettingHistory', Middleware.user, BettingController.getBettingHistory);
 
 export default router;   

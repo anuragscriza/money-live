@@ -9,11 +9,11 @@ import { CommonHandler, ValidationError, NotFoundError } from './CommonHandler.m
 
 class BettingController {
     static async createBetting(req, res) {
-        console.log("body - ", req.body);
+        //const userId = req.user.userId;
         try {
             console.log("test");
-            const bettingData = await BettingController.bettingValidation(req.body);
-            const betting = await BettingRepository.createBetting(bettingData);
+            // const bettingData = await BettingController.bettingValidation(req.body);
+            const betting = await BettingRepository.createBetting({ ...req.body, userId: req.user.userId });
             res.status(201).json({ status: 201, success: true, message: 'Betting created successfully', betting });
         } catch (error) {
             console.log("error - ", error);
@@ -366,8 +366,12 @@ class BettingController {
         }
     }
 
+    static async getBettingHistory(req, res) {
+        const userId = req.user.userId;
+        const betting = await BettingRepository.bettingHistory(userId);
+        console.log("betting result", betting);
 
-
+    }
 
 }
 

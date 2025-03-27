@@ -82,6 +82,8 @@ class UserRepository {
         }
         return await paginate(User, query, options.page, options.limit, req);
     }
+
+    static async updateUserByUserId(userId, userData) { return await User.findOneAndUpdate({ userId }, userData, { new: true }); }
 }
 
 export default UserRepository;

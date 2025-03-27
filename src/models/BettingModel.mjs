@@ -3,19 +3,14 @@ import { Schema, model } from 'mongoose';
 
 const BettingSchema = new Schema({
     userId: { type: Number, required: true },
-    betting_id: { type: Number, default: () => Math.floor(100000 + Math.random() * 900000), unique: true },
-    character: [{
-        character_id: { type: String, required: true },
-        amount: { type: Number, required: true },
-        win_amount: { type: Number, default: 0 },
-        status: { type: String, default: "BetApplied" },
-    }],
-    // userId: { type: Number, required: true },
-    // userName: { type: String, required: true },
-    // amount: { type: Number, required: true },
-    // winAmount: { type: Number, default: 0 },
-    weightage: { type: Number, default: 0 },
-    game_status: { type: String, default: "pending" }
+    bettingId: { type: Number, default: () => Math.floor(100000 + Math.random() * 900000), unique: true },
+    gameId: { type: Number, required: true },
+    userName: { type: String, required: true },
+    characterId: { type: Number, required: true },
+    betAmount: { type: Number, required: true },
+    winAmount: { type: Number, default: 0 },
+    characterStatus: { type: String, default: null },
+    gameStatus: { type: String, default: "pending" }
 }, { timestamps: true });
 
 BettingSchema.set('toJSON', {

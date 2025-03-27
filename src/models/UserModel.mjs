@@ -38,7 +38,13 @@ const userSchema = new Schema({
     referenceCode: { type: String, default: 'ADMIN0001' },
     status: { type: String, default: 'Active' },
     otp: { type: Number, default: null },
-    game_started: { type: String, default: null }
+    game_started: { type: String, default: null },
+    image: { type: String, default: null }, // Storing Base64 image as a string
+    fullName: { type: String, require: true },
+    country: { type: String, default: "" },
+    address: { type: String, default: "" },
+    totalLoss: { type: String, default: 0 },
+    userName: { type: String, default: "" },
 }, {
     timestamps: true,
     toJSON: {
