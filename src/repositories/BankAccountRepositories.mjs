@@ -15,7 +15,9 @@
 import BankAccount from "../models/BankAccountModel.mjs";
 
 class BankAccountRepository {
+  
   async create(data) {
+    console.log(data)
     return await BankAccount.create(data);
   }
 

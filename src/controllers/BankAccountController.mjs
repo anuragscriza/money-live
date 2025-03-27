@@ -8,8 +8,8 @@ class BankAccountController {
         return res.status(400).json({ error: "Account numbers do not match!" });
       }
 
-      const newAccount = await BankAccountRepository.create(req.body.userId);
-      res.statusCode(201).json({
+      const newAccount = await BankAccountRepository.create(req.body);
+      res.status(201).json({
         message: "Bank Account created successfully",
         statusCode: 201,
       });
@@ -29,27 +29,52 @@ class BankAccountController {
       res.status(500).json({ error: error.message });
     }
   }
- 
-  // Get Single Bank Account by User ID
-async getByUserId(req, res) {
-  try {
-    const { userId } = req.params;
-    const account = await BankAccountRepository.getByUserId(userId);
-    
-    if (!account) {
-      return res.status(404).json({ error: "Bank account not found" });
-    }
-    
-    res.json(account);
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-}
 
-  // Get All Bank Accounts
+  // Get Single Bank Account by User ID
+  async getByUserId(req, res) {
+    try {
+      const { userId } = req.params;
+      const account = await BankAccountRepository.getByUserId(userId);
+
+      if (!account) {
+        return res.status(404).json({ error: "Bank account not found" });
+      }
+
+      res.json(account);
+    } catch (error) {
+      res.status(500).json({ error: error.message });
+    }
+  }
+
+  //   // Get All Bank Accounts
+  //   async getAllAccount(req, res) {
+  //     try {
+  //       const accounts = await BankAccountRepository.getAllAccount();
+  //       res.json(accounts);
+  //     } catch (error) {
+  //       res.status(500).json({ error: error.message });
+  //     }
+  //   }
+  // }
+
+  // Get All Bank Accounts by User ID
   async getAllAccount(req, res) {
     try {
-      const accounts = await BankAccountRepository.getAllAccount();
+      const { userId } = req.params; // Assuming userId is sent as a route parameter
+      if (!userId) {
+        return res.status(400).json({ error: "User ID is required" });
+      }
+
+      const accounts = await BankAccountRepository.getAllAccountByUserId(
+        userId
+      );
+
+      if (!accounts || accounts.length === 0) {
+        return res
+          .status(404)
+          .json({ message: "No accounts found for this user" });
+      }
+
       res.json(accounts);
     } catch (error) {
       res.status(500).json({ error: error.message });
