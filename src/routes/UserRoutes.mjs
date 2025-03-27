@@ -30,4 +30,12 @@ router.post('/changePassword', UserRegistrationController.changePassword);
 router.put('/startGame/:userId', UserController.gameStarted);
 
 
+
+router.get("/getProfile",Middleware.user, UserController.getUserProfile);
+
+//Put /Route to Update
+ router.put("/updateUser",Middleware.user, UserController.updateUserByUserId);
+
+
+
 export default router;
