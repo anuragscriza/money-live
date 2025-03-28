@@ -111,7 +111,7 @@
 
 import AccountRepository from "../repositories/AccountRepository.mjs";
 import BankAccountRepository from "../repositories/BankAccountRepositories.mjs";
-import UpiAccountRepository from "../repositories/upiRepositories.mjs"; 
+import UpiAccountRepository from "../repositories/upiRepositories.mjs";
 
 const upiAccountRepo = new UpiAccountRepository(); // Define UPI repo instance
 
@@ -136,7 +136,7 @@ class BankAccountController {
     try {
       const { type } = req.query; // Extract 'type' from URL params
       let accounts;
-  
+
       if (type === "bank") {
         accounts = await BankAccountRepository.getAll(); // Fetch bank accounts by userId
       } else if (type === "upi") {
@@ -144,12 +144,16 @@ class BankAccountController {
       } else {
         accounts = await AccountRepository.getAllAccounts(); // If no type is provided, return all accounts
       }
-  
+
       if (!accounts || accounts.length === 0) {
         return res.status(404).json({ message: "No accounts found" });
       }
-  
-      res.json(accounts);
+      res.status(200).json({
+        message: "Bank Account fetch successfully",
+        statusCode: 200,
+        success: true,
+        data: accounts,
+      });
     } catch (error) {
       res.status(500).json({ error: error.message });
     }
