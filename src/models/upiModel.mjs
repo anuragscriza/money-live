@@ -4,8 +4,9 @@ import mongoose from "mongoose";
 const UpiModelSchema = new mongoose.Schema(
   {
     upiId: {
-      type: String,
-      required: [true, "upiId is required"], // Fixed typo
+      type: Number,
+      default: () => Math.floor(100000 + Math.random() * 900000),
+      unique: true,
     },
     accountName: {
       type: String,
@@ -28,10 +29,6 @@ const UpiModelSchema = new mongoose.Schema(
       type: String,
       required: [true, "Identifier is required"], // Fixed typo
     },
-    // UserId: {
-    //   type: String,
-    //   required: [true, "UserId is required"], // Fixed typo
-    // },
   },
   { timestamps: true }
 );

@@ -111,7 +111,7 @@
 
 import AccountRepository from "../repositories/AccountRepository.mjs";
 import BankAccountRepository from "../repositories/BankAccountRepositories.mjs";
-import UpiAccountRepository from "../repositories/upiRepositories.mjs"; // Import correctly
+import UpiAccountRepository from "../repositories/upiRepositories.mjs"; 
 
 const upiAccountRepo = new UpiAccountRepository(); // Define UPI repo instance
 
@@ -138,11 +138,11 @@ class BankAccountController {
       let accounts;
   
       if (type === "bank") {
-        accounts = await BankAccountRepository.getAll(); // ✅ Fetch bank accounts by userId
+        accounts = await BankAccountRepository.getAll(); // Fetch bank accounts by userId
       } else if (type === "upi") {
-        accounts = await upiAccountRepo.getAll(); // ✅ Fetch UPI accounts by userId
+        accounts = await upiAccountRepo.getAll(); // Fetch UPI accounts by userId
       } else {
-        accounts = await AccountRepository.getAllAccounts(); // ✅ If no type is provided, return all accounts
+        accounts = await AccountRepository.getAllAccounts(); // If no type is provided, return all accounts
       }
   
       if (!accounts || accounts.length === 0) {

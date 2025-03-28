@@ -3,7 +3,7 @@ import UpiAccount from "../models/upiModel.mjs";
 
 class AccountRepository {
   
-  // ✅ Create a new Bank or UPI account
+  // Create a new Bank or UPI account
   async create(data, type) {
     if (type === "upi") {
       return await UpiAccount.create(data);
@@ -11,7 +11,7 @@ class AccountRepository {
     return await BankAccount.create(data);
   }
 
-  // ✅ Update Bank or UPI account by ID
+  // Update Bank or UPI account by ID
   async update(id, data, type) {
     if (type === "upi") {
       return await UpiAccount.findByIdAndUpdate(id, data, { new: true });
@@ -22,7 +22,7 @@ class AccountRepository {
     });
   }
 
-  // ✅ Get a single Bank or UPI account by userId
+  // Get a single Bank or UPI account by userId
   async getByUserId(userId, type) {
     if (type === "upi") {
       return await UpiAccount.find({ UserId: userId });
@@ -30,21 +30,21 @@ class AccountRepository {
     return await BankAccount.findOne({ userId });
   }
 
-  // ✅ Get all Bank accounts
+  // Get all Bank accounts
   async getAllBankAccounts() {
     return await BankAccount.find({});
   }
 
-  // ✅ Get all UPI accounts
+  // Get all UPI accounts
   async getAllUpiAccounts() {
     return await UpiAccount.find({});
   }
 
-  // ✅ Get all Bank & UPI accounts combined
+  // Get all Bank & UPI accounts combined
   async getAllAccounts() {
     const bankAccounts = await BankAccount.find({}).lean();
     const upiAccounts = await UpiAccount.find({}).lean();
-    return [...bankAccounts, ...upiAccounts]; // ✅ Merge both arrays
+    return [...bankAccounts, ...upiAccounts]; // Merge both arrays
   }
 }
 

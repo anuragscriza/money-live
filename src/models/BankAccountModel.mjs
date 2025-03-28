@@ -2,10 +2,11 @@ import mongoose from "mongoose";
 
 const BankAccountSchema = new mongoose.Schema(
   {
-    // userId: {
-    //   type: String,
-    //   required: true,
-    // },
+    accountId: {
+      type: Number,
+      default: () => Math.floor(100000 + Math.random() * 900000),
+      unique: true,
+    },
     bankName: { type: String, required: true },
     accountNumber: { type: String, required: true, unique: true },
     reAccountNumber: { type: String, required: true },
