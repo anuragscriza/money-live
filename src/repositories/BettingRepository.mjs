@@ -134,9 +134,16 @@ class BettingRepository {
             userId: userId,
             gameStatus: "Complete",
             characterStatus: "Winner",
-        }).sort({ createdAt: -1 });;
+        }).sort({ createdAt: -1 }).select("userId gameId userName characterId winAmount bettingId");
     }
 
+    static async bettingHistoryByGameIdAndUserId(userId, gameId) {
+        return await Betting.find({
+            userId: userId,
+            gameId: gameId,
+            gameStatus: "Complete",
+        }).sort({ createdAt: -1 }).select("userId gameId userName characterId winAmount bettingId characterStatus");
+    }
 }
 
 

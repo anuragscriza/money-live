@@ -5,7 +5,13 @@ import BettingRepository from '../repositories/BettingRepository.mjs';
 import UserRepository from '../repositories/UserRepository.mjs'
 import CharacterRepository from '../repositories/CharactersRepository.mjs'
 import StatementRepository from '../repositories/StatementRepository.mjs';
-import { CommonHandler, ValidationError, NotFoundError } from './CommonHandler.mjs'
+import { CommonHandler, ValidationError, NotFoundError } from './CommonHandler.mjs';
+import path from "path";
+import fs from "fs";
+
+// // Fix `__dirname` since it's not available in ES modules
+// const __filename = fileURLToPath(import.meta.url);
+// const __dirname = path.dirname(__filename);
 
 class BettingController {
     static async createBetting(req, res) {
@@ -366,12 +372,216 @@ class BettingController {
         }
     }
 
-    static async getBettingHistory(req, res) {
-        const userId = req.user.userId;
-        const betting = await BettingRepository.bettingHistory(userId);
-        console.log("betting result", betting);
+    // static async getBettingHistory(req, res) {
+    //     try {
+    //         const userId = req.user.userId;
+    //         const bettingData = await BettingRepository.bettingHistory(userId);
+    //         const charactersList = await CharacterRepository.getAllUploadCharacters();
 
+    //         // Handle case where bettingData is empty
+    //         if (!bettingData || bettingData.length === 0) {
+    //             return res.status(200).json({
+    //                 status: 200,
+    //                 success: true,
+    //                 message: "No betting history found",
+    //                 bettingHistory: []
+    //             });
+    //         }
+
+    //         // Create a lookup map for characters (convert keys to String for matching)
+    //         const characterMap = {};
+    //         for (const character of charactersList) {
+    //             characterMap[String(character.characterId)] = character; // Ensure string keys
+    //         }
+
+    //         // Attach character details to each bet
+    //         const bettingHistoryWithCharacters = bettingData.map(bet => {
+    //             const betData = bet._doc || bet; // Handle Mongoose objects
+    //             console.log(`Processing Bet ID: ${betData._id}, Character ID: ${betData.characterId}`);
+
+    //             return {
+    //                 ...betData,
+    //                 characterDetails: characterMap[String(betData.characterId)] || null // Ensure type match
+    //             };
+    //         });
+
+    //         // Send response
+    //         res.status(200).json({
+    //             status: 200,
+    //             success: true,
+    //             message: "Betting history fetched successfully",
+    //             bettingHistory: bettingHistoryWithCharacters
+    //         });
+
+    //     } catch (error) {
+    //         console.error("Error fetching betting history:", error);
+    //         CommonHandler.catchError(error, res);
+    //     }
+    // }
+
+    static async getBettingHistory(req, res) {
+        try {
+            const userId = req.user.userId;
+            const bettingData = await BettingRepository.bettingHistory(userId);
+            const charactersList = await CharacterRepository.getAllUploadCharacters();
+
+            // Handle case where bettingData is empty
+            if (!bettingData || bettingData.length === 0) {
+                return res.status(200).json({
+                    status: 200,
+                    success: true,
+                    message: "No betting history found",
+                    bettingHistory: []
+                });
+            }
+
+            // Define image folder path
+            const folderPath = 'uploads/characters';
+
+            // Create a lookup map for characters (convert keys to String for matching)
+            const characterMap = {};
+            for (const character of charactersList) {
+                const filename = `${character.name}`;
+                const imagePath = path.join(folderPath, `${character.name}.png`);
+                characterMap[String(character.characterId)] = {
+                    filename,
+                    imagePath
+                };
+            }
+
+            // Attach character image path to each bet
+            const bettingHistoryWithCharacters = bettingData.map(bet => {
+                const betData = bet._doc || bet; // Handle Mongoose objects
+                console.log(`Processing Bet ID: ${betData._id}, Character ID: ${betData.characterId}`);
+
+                return {
+                    ...betData,
+                    characterDetails: characterMap[String(betData.characterId)] || { filename: null, folderPath: null } // Only pass filename & folderPath
+                };
+            });
+
+            // Send response
+            res.status(200).json({
+                status: 200,
+                success: true,
+                message: "Betting history fetched successfully",
+                bettingHistory: bettingHistoryWithCharacters
+            });
+
+        } catch (error) {
+            console.error("Error fetching betting history:", error);
+            CommonHandler.catchError(error, res);
+        }
     }
+
+    static async getBettingHistoryUsingGameId(req, res) {
+        try {
+            const userId = req.user.userId;
+            const bettingData = await BettingRepository.bettingHistoryByGameIdAndUserId(userId, req.body.gameId);
+            const charactersList = await CharacterRepository.getAllUploadCharacters();
+
+            // Handle case where bettingData is empty
+            if (!bettingData || bettingData.length === 0) {
+                return res.status(200).json({
+                    status: 200,
+                    success: true,
+                    message: "No betting history found",
+                    bettingHistory: []
+                });
+            }
+            // Define image folder path
+            const folderPath = 'uploads/characters';
+
+            // Create a lookup map for characters (convert keys to String for matching)
+            const characterMap = {};
+            for (const character of charactersList) {
+                const filename = `${character.name}`;
+                const imagePath = path.join(folderPath, `${character.name}.png`);
+                characterMap[String(character.characterId)] = {
+                    filename,
+                    imagePath
+                };
+            }
+
+            // Attach character image path to each bet
+            const bettingHistoryWithCharacters = bettingData.map(bet => {
+                const betData = bet._doc || bet; // Handle Mongoose objects
+                console.log(`Processing Bet ID: ${betData._id}, Character ID: ${betData.characterId}`);
+
+                return {
+                    ...betData,
+                    characterDetails: characterMap[String(betData.characterId)] || { filename: null, folderPath: null } // Only pass filename & folderPath
+                };
+            });
+
+            // Send response
+            res.status(200).json({
+                status: 200,
+                success: true,
+                message: "Betting history fetched successfully",
+                bettingHistory: bettingHistoryWithCharacters
+            });
+
+        } catch (error) {
+            console.error("Error fetching betting history:", error);
+            CommonHandler.catchError(error, res);
+        }
+    }
+
+    static async getBettingHiostoryData(req, res) {
+        try {
+            const userId = req.user.userId;
+            const bettingData = await BettingRepository.bettingHistoryByGameIdAndUserId(userId, req.body.gameId);
+            const charactersList = await CharacterRepository.getAllUploadCharacters();
+
+            // Handle case where bettingData is empty
+            if (!bettingData || bettingData.length === 0) {
+                return res.status(200).json({
+                    status: 200,
+                    success: true,
+                    message: "No betting history found",
+                    bettingHistory: []
+                });
+            }
+            // Define image folder path
+            const folderPath = 'uploads/characters';
+
+            // Create a lookup map for characters (convert keys to String for matching)
+            const characterMap = {};
+            for (const character of charactersList) {
+                const filename = `${character.name}`;
+                const imagePath = path.join(folderPath, filename);
+                characterMap[String(character.characterId)] = {
+                    filename,
+                    imagePath
+                };
+            }
+
+            // Attach character image path to each bet
+            const bettingHistoryWithCharacters = bettingData.map(bet => {
+                const betData = bet._doc || bet; // Handle Mongoose objects
+                console.log(`Processing Bet ID: ${betData._id}, Character ID: ${betData.characterId}`);
+
+                return {
+                    ...betData,
+                    characterDetails: characterMap[String(betData.characterId)] || { filename: null, folderPath: null } // Only pass filename & folderPath
+                };
+            });
+
+            // Send response
+            res.status(200).json({
+                status: 200,
+                success: true,
+                message: "Betting history fetched successfully",
+                bettingHistory: bettingHistoryWithCharacters
+            });
+
+        } catch (error) {
+            console.error("Error fetching betting history:", error);
+            CommonHandler.catchError(error, res);
+        }
+    }
+
 
 }
 
