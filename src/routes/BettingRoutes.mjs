@@ -36,4 +36,7 @@ router.get('/getBettingStatus', BettingController.getBettingStatus);
 //get betting history
 router.get('/getBettingHistory', Middleware.user, BettingController.getBettingHistory);
 
+router.get('/getBettingHistoryByGameId', Middleware.user, BettingController.getBettingHistoryUsingGameId);
+
+
 export default router;   
