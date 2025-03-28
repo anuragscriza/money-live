@@ -428,7 +428,7 @@ class BettingController {
             // Handle case where bettingData is empty
             if (!bettingData || bettingData.length === 0) {
                 return res.status(200).json({
-                    status: 200,
+                    statusCode: 200,
                     success: true,
                     message: "No betting history found",
                     bettingHistory: []
@@ -462,7 +462,7 @@ class BettingController {
 
             // Send response
             res.status(200).json({
-                status: 200,
+                statusCode: 200,
                 success: true,
                 message: "Betting history fetched successfully",
                 bettingHistory: bettingHistoryWithCharacters
@@ -483,7 +483,7 @@ class BettingController {
             // Handle case where bettingData is empty
             if (!bettingData || bettingData.length === 0) {
                 return res.status(200).json({
-                    status: 200,
+                    statusCode: 200,
                     success: true,
                     message: "No betting history found",
                     bettingHistory: []
@@ -516,7 +516,7 @@ class BettingController {
 
             // Send response
             res.status(200).json({
-                status: 200,
+                statusCode: 200,
                 success: true,
                 message: "Betting history fetched successfully",
                 bettingHistory: bettingHistoryWithCharacters
@@ -537,7 +537,7 @@ class BettingController {
             // Handle case where bettingData is empty
             if (!bettingData || bettingData.length === 0) {
                 return res.status(200).json({
-                    status: 200,
+                    statusCode: 200,
                     success: true,
                     message: "No betting history found",
                     bettingHistory: []
@@ -570,7 +570,7 @@ class BettingController {
 
             // Send response
             res.status(200).json({
-                status: 200,
+                statusCode: 200,
                 success: true,
                 message: "Betting history fetched successfully",
                 bettingHistory: bettingHistoryWithCharacters
@@ -581,8 +581,6 @@ class BettingController {
             CommonHandler.catchError(error, res);
         }
     }
-
-
 }
 
 export default BettingController;
