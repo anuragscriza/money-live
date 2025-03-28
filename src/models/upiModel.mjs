@@ -19,15 +19,15 @@ const UpiModelSchema = new mongoose.Schema(
       type: String,
       required: [true, "address is required"], // Fixed typo
     },
-    // AccountType: {
-    //   type: String,
-    //   required: [true, "AccountType is required"], // Fixed typo
-    // },
-    // Identifier: {
-    //   // Fixed typo: 'Identifer' to 'Identifier'
-    //   type: String,
-    //   required: [true, "Identifier is required"], // Fixed typo
-    // },
+    AccountType: {
+      type: String,
+      required: [true, "AccountType is required"], // Fixed typo
+    },
+    Identifier: {
+      // Fixed typo: 'Identifer' to 'Identifier'
+      type: String,
+      required: [true, "Identifier is required"], // Fixed typo
+    },
     // UserId: {
     //   type: String,
     //   required: [true, "UserId is required"], // Fixed typo

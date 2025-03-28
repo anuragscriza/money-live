@@ -25,6 +25,10 @@ class BankAccountRepository {
   async getAllAccountsByUserId(userId) { // ✅ Ensure this method exists
     return await BankAccount.find({ userId });
   }
+
+  async getAll() {
+    return await BankAccount.find({}).lean(); // Using `.lean()` for performance optimization
+  }
 }
 
 export default new BankAccountRepository(); // ✅ Ensure this is a default export
