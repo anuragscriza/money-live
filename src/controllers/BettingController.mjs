@@ -476,8 +476,10 @@ class BettingController {
 
     static async getBettingHistoryUsingGameId(req, res) {
         try {
+            ///console.log();
+            //console.log("query --", req.query.gameId);
             const userId = req.user.userId;
-            const bettingData = await BettingRepository.bettingHistoryByGameIdAndUserId(userId, req.body.gameId);
+            const bettingData = await BettingRepository.bettingHistoryByGameIdAndUserId(userId, req.query.gameId);
             const charactersList = await CharacterRepository.getAllUploadCharacters();
 
             // Handle case where bettingData is empty
@@ -506,11 +508,20 @@ class BettingController {
             // Attach character image path to each bet
             const bettingHistoryWithCharacters = bettingData.map(bet => {
                 const betData = bet._doc || bet; // Handle Mongoose objects
-                console.log(`Processing Bet ID: ${betData._id}, Character ID: ${betData.characterId}`);
 
                 return {
                     ...betData,
-                    characterDetails: characterMap[String(betData.characterId)] || { filename: null, folderPath: null } // Only pass filename & folderPath
+                    characterDetails: characterMap[String(betData.characterId)] || { filename: null, folderPath: null },
+                    createdAt: new Date(bet.createdAt).toLocaleString("en-GB", {
+                        timeZone: "Asia/Kolkata", // Ensure time is in IST
+                        year: "numeric",
+                        month: "short",
+                        day: "2-digit",
+                        hour: "2-digit",
+                        minute: "2-digit",
+                        hour12: true // Ensures AM/PM format
+                    }).replace(",", "")
+
                 };
             });
 

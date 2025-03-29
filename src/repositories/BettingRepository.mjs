@@ -190,6 +190,7 @@ class BettingRepository {
     }
   }
 
+<<<<<<< HEAD
   static async updateBettingWinnerStatus(characterData) {
     await Betting.updateOne(
       {
@@ -245,6 +246,15 @@ class BettingRepository {
         "userId gameId userName characterId betAmount winAmount bettingId characterStatus"
       );
   }
+=======
+    static async bettingHistoryByGameIdAndUserId(userId, gameId) {
+        return await Betting.find({
+            userId: userId,
+            gameId: gameId,
+            gameStatus: "Complete",
+        }).sort({ createdAt: -1 }).select("userId gameId userName characterId winAmount bettingId characterStatus createdAt");
+    }
+>>>>>>> 08cdaa0 (date time and change the get query method)
 }
 
 export default BettingRepository;

@@ -14,6 +14,7 @@ export default async function setupExpressApp() {
     //   const monitor = new SystemMonitoring(); 
     app.use(cookieParser());
     app.use(express.json({ limit: '1mb' }));
+
     app.use(express.urlencoded({ extended: true, limit: '1mb' }));
     app.use(cors({ credentials: true, origin: ['http://localhost:8002', 'http://localhost:3001'] }));
     //app.use(express.static('src/public'));
