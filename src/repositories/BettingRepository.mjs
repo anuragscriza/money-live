@@ -245,6 +245,17 @@ class BettingRepository {
                 "userId gameId userName characterId betAmount winAmount bettingId characterStatus createdAt"
             );
     }
+    // Existing methods...
+
+    static async getBettingSumByUserId(userId) {
+        const result = await Betting.aggregate([
+            { $match: { userId: userId } },
+            { $group: { _id: null, totalAmount: { $sum: "$amount" }, totalWinAmount: { $sum: "$winAmount" } } }
+        ]);
+        return result.length > 0 
+            ? { totalAmount: result[0].totalAmount, totalWinAmount: result[0].totalWinAmount }
+            : { totalAmount: 0, totalWinAmount: 0 };
+    }
 }
 
 export default BettingRepository;

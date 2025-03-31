@@ -38,5 +38,12 @@ router.get('/getBettingHistory', Middleware.user, BettingController.getBettingHi
 
 router.get('/getBettingHistoryByGameId', Middleware.user, BettingController.getBettingHistoryUsingGameId);
 
+// Route to get betting stats for a user
+// router.get('/betting/:userId/stats',Middleware.user, BettingController.getBettingSumByUser);
+// Route to get betting stats for a user
+router.get('/betting/:userId',Middleware.user, BettingController.getBettingSumByUser);
+
+
+
 
 export default router;   

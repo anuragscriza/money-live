@@ -146,6 +146,30 @@ class RechargeController {
         } catch (error) {
             CommonHandler.catchError(error, res);
         }
+        
+    }
+    static async getRechargeSumByUser(req, res) {
+        const { userId } = req.params; // Assuming userId is passed as a URL parameter
+
+        try {
+            // Fetch recharge sum by user from the RechargeRepository
+            const rechargeStats = await RechargeRepository.getRechargeSumByUserId(userId);
+
+            // Return the result as a JSON response
+            return res.status(200).json({
+                success: true,
+                message: 'User recharge statistics fetched successfully',
+                data: rechargeStats
+            });
+        } catch (error) {
+            // Handle error if something goes wrong
+            console.error(error);
+            return res.status(500).json({
+                success: false,
+                message: 'Failed to fetch user recharge statistics',
+                error: error.message
+            });
+        }
     }
 }
 

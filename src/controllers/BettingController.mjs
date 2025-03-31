@@ -592,6 +592,29 @@ class BettingController {
             CommonHandler.catchError(error, res);
         }
     }
+    static async getBettingSumByUser(req, res) {
+        const { userId } = req.params; // Assuming userId is passed as a URL parameter
+
+        try {
+            // Fetch betting sum by user from the BettingRepository
+            const bettingStats = await BettingRepository.getBettingSumByUserId(userId);
+
+            // Return the result as a JSON response
+            return res.status(200).json({
+                success: true,
+                message: 'User betting statistics fetched successfully',
+                data: bettingStats
+            });
+        } catch (error) {
+            // Handle error if something goes wrong
+            console.error(error);
+            return res.status(500).json({
+                success: false,
+                message: 'Failed to fetch user betting statistics',
+                error: error.message
+            });
+        }
+    }
 }
 
 export default BettingController;

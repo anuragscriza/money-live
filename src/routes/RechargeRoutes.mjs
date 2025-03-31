@@ -21,4 +21,8 @@ router.put('/updateRechargeByRechargeId/:rechargeId', RechargeController.updateR
 // DELET /Route to delete a recharge by rechargeId
 router.delete('/deleteRechargeByRechargeId/:rechargeId', RechargeController.deleteRechargeByRechargeId);
 
+// Route to get recharge stats for a user
+router.get('/recharge/:userId', Middleware.user ,RechargeController.getRechargeSumByUser);
+
+
 export default router;

@@ -36,6 +36,19 @@ class RechargeRepository {
 
     static async getUserRecharge(userId) { return await Recharge.find({ userId: userId }).sort({ createdAt: -1 }); }
 
+    static async getUserTotalStats(userId) {
+        const rechargeSum = await RechargeRepository.getRechargeSumByUserId(userId);
+        const { totalAmount: bettingTotalAmount, totalWinAmount: bettingTotalWinAmount } = await BettingRepository.getBettingSumByUserId(userId);
+
+        return {
+            rechargeSum,
+            bettingTotalAmount,
+            bettingTotalWinAmount,
+            totalAmount: rechargeSum + bettingTotalAmount, // Total amount from both Recharge and Betting
+            totalWinAmount: bettingTotalWinAmount // You can also combine win amounts in any way you want
+        };
+    }
+
 }
 
 export default RechargeRepository;
