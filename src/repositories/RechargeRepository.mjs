@@ -49,6 +49,19 @@ class RechargeRepository {
         };
     }
 
+    static async getTotalRecharge(userId) {
+        try {
+            const result = await Recharge.aggregate([
+                { $match: { userId: userId } },
+                { $group: { _id: null, totalAmount: { $sum: "$amount" } } }
+            ]);
+
+            return result.length > 0 ? result[0].totalAmount : 0;
+        } catch (error) {
+            throw new Error(`Error fetching sum: ${error.message}`);
+        }
+    }
+
 }
 
 export default RechargeRepository;

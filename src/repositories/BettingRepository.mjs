@@ -249,12 +249,12 @@ class BettingRepository {
 
     static async getBettingSumByUserId(userId) {
         const result = await Betting.aggregate([
-            { $match: { userId: userId } },
-            { $group: { _id: null, totalAmount: { $sum: "$amount" }, totalWinAmount: { $sum: "$winAmount" } } }
+            { $match: { userId: userId, gameStatus: "Complete" } },
+            { $group: { _id: null, totalBetAmount: { $sum: "$betAmount" } } }
         ]);
-        return result.length > 0 
-            ? { totalAmount: result[0].totalAmount, totalWinAmount: result[0].totalWinAmount }
-            : { totalAmount: 0, totalWinAmount: 0 };
+        return result.length > 0
+            ? { totalBetAmount: result[0].totalBetAmount, }
+            : { totalAmount: 0 };
     }
 }
 

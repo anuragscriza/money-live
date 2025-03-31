@@ -2,6 +2,10 @@
 import UserRegistrationController from "./UserRegistrationController.mjs";
 import { CommonHandler } from "../controllers/CommonHandler.mjs";
 import UserRepository from "../repositories/UserRepository.mjs";
+import RechargeRepository from "../repositories/RechargeRepository.mjs";
+import BettingRepository from "../repositories/BettingRepository.mjs";
+
+
 
 class UserController {
     async UserController(req, res) {
@@ -47,18 +51,18 @@ class UserController {
     // Get user profile using token userId
     static async getUserProfile(req, res) {
         const userId = req.user.userId; //get user by token
-        console.log(req.user);
-
+        const totalDeposit = await RechargeRepository.getTotalRecharge(userId);
+        const totalBetAmount = await BettingRepository.getBettingSumByUserId(userId);
         const userData = await UserRepository.getUserByUserId(userId);
-        console.log(userData);
+        console.log(totalDeposit);
         let userProfile = {
             fullName: userData.fullName,
             email: userData.email,
             mobile: userData.mobile,
             totalWins: 0,
             totalCoin: 0,
-            totalDeposit: 0,
-            totalWithdrawal: 0,
+            totalDeposit: totalDeposit,
+            totalWithdrawal: totalDeposit - totalBetAmount.totalBetAmount,
             image: userData.image,
             address: userData.address,
             country: userData.country,
@@ -73,8 +77,8 @@ class UserController {
                 email: userData.email,
                 mobile: userData.mobile,
                 totalWins: 20,
-                totalCoin: 50129,
-                totalDeposit: 3000,
+                totalDeposit: totalDeposit,
+                totalWithdrawal: totalDeposit - totalBetAmount,
                 totalWithdrawal: 1500,
                 image: userData.image,
                 address: userData.address,
