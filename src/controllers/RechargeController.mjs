@@ -76,9 +76,9 @@ class RechargeController {
         // console.log("user", data.user);
         const userId = data.user.userId;
 
-        await CommonHandler.validateRequiredFields({ transactionId, amount });
+        await CommonHandler.validateRequiredFields({ amount });
         await CommonHandler.validateSixDigitIdFormat(userId);
-        await CommonHandler.validateTransactionFormat(transactionId);
+        // await CommonHandler.validateTransactionFormat(transactionId);
 
         const existingUser = await UserRepository.getUserByUserId(userId);
         if (!existingUser) { throw new NotFoundError(`User with userId: ${userId} does not exist`); }
