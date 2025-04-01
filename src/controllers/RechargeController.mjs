@@ -75,9 +75,11 @@ class RechargeController {
         const { transactionId, amount } = data.body;
         // console.log("user", data.user);
         const userId = data.user.userId;
+        console.log(userId)
 
         await CommonHandler.validateRequiredFields({ amount });
         await CommonHandler.validateSixDigitIdFormat(userId);
+        console.log(userId)
         // await CommonHandler.validateTransactionFormat(transactionId);
 
         const existingUser = await UserRepository.getUserByUserId(userId);
@@ -148,7 +150,7 @@ class RechargeController {
         }
         
     }
-    static async getRechargeSumByUser(req, res) {
+    static async getRechargeSumByUserId(req, res) {
         const { userId } = req.params; // Assuming userId is passed as a URL parameter
 
         try {
