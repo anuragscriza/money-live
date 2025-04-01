@@ -79,7 +79,6 @@ class UserController {
                 totalWins: 20,
                 totalDeposit: totalDeposit,
                 totalWithdrawal: totalDeposit - totalBetAmount.totalBetAmount,
-                totalWithdrawal: 1500,
                 image: userData.image,
                 address: userData.address,
                 country: userData.country,
