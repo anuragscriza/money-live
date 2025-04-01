@@ -1,5 +1,5 @@
 // src/controllers/WithdrawalController.mjs
-import BankDetailsRepository from "../repositories/BankDetailsRepository.mjs";
+import BankDetailsRepository from "../repositories/BankAccountRepositories.mjs";
 import UserRepository from "../repositories/UserRepository.mjs";
 import WithdrawalRepository from "../repositories/WithdrawalRepository.mjs";
 import AmountSetupRepository from '../repositories/AmountSetupRepository.mjs';
@@ -10,26 +10,18 @@ class WithdrawalController {
     static async createWithdrawal(req, res) {
         try {
             const withdrawalData = await WithdrawalController.withdrawalCreateValidation(req);
-            console.log("withdrawalData --", withdrawalData);
-            const withdrawal = await WithdrawalRepository.createWithdrawal(withdrawalData);
-            const user = await UserRepository.getUserByUserId(withdrawal.userId);
-            const createWithdrawalStatement = { transactionId: withdrawal.withdrawalId, userId: user.userId, userName: user.userName, message: `Hi,${user.userName} your withdrawal request for withdrawalId: ${withdrawal.withdrawalId} has been registered`, amount: withdrawal.amount, closingBalance: user.wallet, category: 'Withdrawal', type: 'Debit', status: withdrawal.status };
-            await StatementRepository.createStatement(createWithdrawalStatement);
-            res.status(201).json({ status: 201, success: true, message: 'Withdrawal created successfully', data: withdrawal });
-        } catch (error) {
-            CommonHandler.catchError(error, res);
-        }
-    }
+            const userId = req.user.userId;
+            const data = { ...withdrawalData, userId };
+            const withdrawal = await WithdrawalRepository.createWithdrawal(data);
 
-    static async getAllWithdrawals(req, res) {
-        try {
-            const { status, search, startDate, endDate, pageNumber = 1, perpage = 10 } = req.query;
-            const options = { page: Number(pageNumber), limit: Number(perpage) };
-            const filterParams = { status, search, startDate, endDate };
-            const withdrawals = Object.keys(filterParams).length > 0 ?
-                await WithdrawalRepository.filterWithdrawals(filterParams, options, req) :
-                await WithdrawalRepository.getAllWithdrawals(options, req);
-            res.status(200).json({ status: 200, success: true, message: 'All withdrawals fetched successfully', data: withdrawals });
+            const existingUser = await UserRepository.getUserByUserId(userId);
+            if (!existingUser) { throw new NotFoundError(`User with userId: ${userId} does not exist`); }
+            // if (amount > existingUser.winningsAmount) { throw new ValidationError(`Insufficient balance in your winnings, current available balance is ${existingUser.winningsAmount}`); }
+            existingUser.lifetimeWithdrawalAmount += data.amount;
+            existingUser.save();
+
+            // const user = await UserRepository.getUserByUserId(userId);
+            res.status(201).json({ statusCode: 201, success: true, message: 'Withdrawal created successfully', data: withdrawal });
         } catch (error) {
             CommonHandler.catchError(error, res);
         }
@@ -86,7 +78,7 @@ class WithdrawalController {
         existingUser.winningsAmount -= amount;
         existingUser.save();
 
-        const bankDetails = await BankDetailsRepository.getBankDetailsByUserIdAndSaveAs(userId, saveAs);
+        const bankDetails = await BankDetailsRepository.getAllAccountsByUserId(userId);
         if (!bankDetails) { throw new NotFoundError(`Bank details not found for userId ${userId} and saveAs ${saveAs}`); }
 
         // data.body.userId = existingUser.userId;
@@ -137,6 +129,45 @@ class WithdrawalController {
     static async validateWithdrawalAmount(amount, minAmount, maxAmount) {
         if (amount < minAmount) { throw new ValidationError(`Withdrawal amount must be greater than or equal to Minimum Withdrawal Amount: ${minAmount}`); }
         if (amount > maxAmount) { throw new ValidationError(`Withdrawal amount must be less than or equal to Maximum Withdrawal Amount: ${maxAmount}`); }
+    }
+
+    static async getAllWithdrawalsWithStatus(req, res) {
+        try {
+
+            if (!req.query.hasOwnProperty("status")) {
+                return res.status(400).json({
+                    statusCode: 400,
+                    success: false,
+                    message: "Missing 'status' key in query parameters."
+                });
+            }
+
+            const userId = req.user.userId;
+            const filter = { userId }; // Always filter by userId
+
+            if (req.query.status) {
+                filter.status = req.query.status;
+            }
+            const withdrawals = await WithdrawalRepository.find(filter);
+            const userDetails = await UserRepository.getUserByUserId(userId);
+            const enrichedWithdrawals = await Promise.all(
+                withdrawals.map(async (withdrawal) => {
+
+                    const bankDetails = await BankDetailsRepository.getBankAccountDetailByBankId({ accountId: withdrawal.bankId });
+                    return {
+                        ...withdrawal.toObject(),
+                        bankDetails: bankDetails || null,
+                        createdAt: new Date(withdrawal.createdAt).toLocaleString("en-GB", {
+                            year: "numeric", month: "long", day: "numeric"
+                        }),
+                    };
+                })
+            );
+            res.status(200).json({ statusCode: 200, success: true, message: 'All withdrawals fetched successfully', totalWithDrawal: userDetails.lifetimeWithdrawalAmount, data: enrichedWithdrawals });
+
+        } catch (error) {
+            throw new Error(`Error fetching withdrawals: ${error.message}`);
+        }
     }
 }
 

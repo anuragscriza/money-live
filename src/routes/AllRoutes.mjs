@@ -13,7 +13,7 @@ export { default as ticketRoutes } from "./TicketRoutes.mjs";
 // export { default as AvailableGamesRoutes } from './AvailableGamesRoutes.mjs';
 // export { default as DashboardRoutes } from './DashboardRoutes.mjs';
 // export { default as BankDetailsRoutes } from './BankDetailsRoute.mjs';
-///export { default as WithdrawalRoutes } from './WithdrawalRoutes.mjs';
+export { default as WithdrawalRoutes } from './WithdrawalRoutes.mjs';
 export { default as RechargeRoutes } from './RechargeRoutes.mjs';
 //export { default as StatementRoutes } from './StatementRoutes.mjs';
 // export { default as ManageQueriesRoutes } from './ManageQueriesRoutes.mjs';

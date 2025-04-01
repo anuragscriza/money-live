@@ -129,7 +129,6 @@ class RechargeController {
     static async getAllUserRecharges(req, res) {
         try {
             const userId = req.user.userId
-            console.log("userId -- ", userId);
             const recharges = await RechargeRepository.getUserRecharge(userId);
             const rechargeData = recharges.map(recharge => ({
                 amount: recharge.amount,

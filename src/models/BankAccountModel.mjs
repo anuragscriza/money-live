@@ -12,7 +12,7 @@ const BankAccountSchema = new mongoose.Schema(
     fullName: { type: String, required: true },
     address: { type: String, required: true },
     ifscCode: { type: String, required: true },
-    userId:{type:Number,required:true}
+    userId: { type: Number, required: true }
   },
   { timestamps: true }
 );

@@ -1,4 +1,4 @@
-                                          // import BankAccountRepository from "../repositories/BankAccountRepositories.mjs";
+// import BankAccountRepository from "../repositories/BankAccountRepositories.mjs";
 
 // class BankAccountController {
 //   async create(req, res) {
@@ -122,9 +122,10 @@ class BankAccountController {
       if (accountNumber !== reAccountNumber) {
         return res.status(400).json({ error: "Account numbers do not match!" });
       }
-
-      await BankAccountRepository.create(req.body);
-      res.statusCode(201).json({
+      const userId = req.user.userId;
+      const bankData = { ...req.body, userId };
+      await BankAccountRepository.create(bankData)
+      res.status(201).json({
         message: "Bank Account created successfully",
         statusCode: 201,
       });

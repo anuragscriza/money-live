@@ -1,7 +1,7 @@
 import BankAccount from "../models/BankAccountModel.mjs";
 
 class BankAccountRepository {
-  
+
   async create(data) {
     console.log("Creating Bank Account:", data);
     return await BankAccount.create(data);
@@ -28,6 +28,11 @@ class BankAccountRepository {
 
   async getAll() {
     return await BankAccount.find({}).lean(); // Using `.lean()` for performance optimization
+  }
+
+  async getBankAccountDetailByBankId(filter) {
+    console.log("filter", filter);
+    return await BankAccount.findOne(filter).select("bankName accountNumber"); // Use Mongoose findOne()
   }
 }
 

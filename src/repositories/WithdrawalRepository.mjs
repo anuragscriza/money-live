@@ -3,11 +3,11 @@ import Withdrawal from "../models/WithdrawalModel.mjs";
 import { paginate } from "../project_setup/Utils.mjs";
 
 class WithdrawalRepository {
-    
-    static async createWithdrawal(data) { return await Withdrawal.create(data); } 
+
+    static async createWithdrawal(data) { return await Withdrawal.create(data); }
 
     static async getAllWithdrawals(options, req) { return await paginate(Withdrawal, {}, options.page, options.limit, req); }
-    
+
     static async getWithdrawalByWithdrawalId(withdrawalId) { return await Withdrawal.findOne({ withdrawalId }); }
 
     static async updateWithdrawalByWithdrawalId(withdrawalId, updateData) { return await Withdrawal.findOneAndUpdate({ withdrawalId }, updateData, { new: true }); }
@@ -31,6 +31,10 @@ class WithdrawalRepository {
             if (filterParams.endDate) { query.createdAt.$lte = new Date(new Date(filterParams.endDate).setHours(23, 59, 59, 999)); }
         }
         return await paginate(Withdrawal, query, options.page, options.limit, req);
+    }
+
+    static async find(filter) {
+        return await Withdrawal.find(filter).select("amount bankId status transactionId createdAt"); // Use Mongoose model to query the database
     }
 
 }
