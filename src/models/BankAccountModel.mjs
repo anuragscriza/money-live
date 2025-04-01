@@ -9,10 +9,10 @@ const BankAccountSchema = new mongoose.Schema(
     },
     bankName: { type: String, required: true },
     accountNumber: { type: String, required: true, unique: true },
-    reAccountNumber: { type: String, required: true },
     fullName: { type: String, required: true },
     address: { type: String, required: true },
     ifscCode: { type: String, required: true },
+    userId:{type:Number,required:true}
   },
   { timestamps: true }
 );
