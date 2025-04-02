@@ -15,7 +15,7 @@ class BankAccountRepository {
   }
 
   async getByUserId(userId) {
-    return await BankAccount.findOne({ userId });
+    return await BankAccount.find({ userId }).select("accountId bankName");
   }
 
   async getAllAccounts() {
@@ -29,6 +29,7 @@ class BankAccountRepository {
   async getAll() {
     return await BankAccount.find({}).lean(); // Using `.lean()` for performance optimization
   }
+  
 }
 
 export default new BankAccountRepository(); // ✅ Ensure this is a default export

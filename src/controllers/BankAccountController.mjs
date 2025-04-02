@@ -158,6 +158,54 @@ class BankAccountController {
       res.status(500).json({ error: error.message });
     }
   }
+  // Get Bank Account by User ID
+  // async getBankAccountByUserId(req, res) {
+  //   try {
+  //     const { userId } = req.params; // Extract userId from URL params
+  //     const account = await BankAccountRepository.getByUserId(userId); // Fetch account by userId
+
+  //     if (!account) {
+  //       return res.status(404).json({ error: "Bank account not found for this user" });
+  //     }
+
+  //     res.status(200).json({
+  //       message: "Bank account details fetched successfully",
+  //       statusCode: 200,
+  //       success: true,
+  //       data: account,
+  //     });
+  //   } catch (error) {
+  //     res.status(500).json({ error: error.message });
+  //   }
+  // }
+
+  async getBankAccountByUserId(req, res) {
+    try {
+      const  userId  = req.user.userId; // Extract userId from URL params
+      const accounts = await BankAccountRepository.getByUserId(userId); // Fetch account by userId
+
+      if (!accounts) {
+        
+        return res.status(404).json({ error: "Bank account not found for this user" });
+      }
+
+      const userBankAccounts = accounts.map(account => ({
+        bankId: account.accountId,
+        bankName: account.bankName
+      }));
+
+      res.status(200).json({
+        message: "Bank account details fetched successfully",
+        statusCode: 200,
+        success: true,
+        data: userBankAccounts,
+      });
+    } catch (error) {
+      res.status(500).json({ error: error.message });
+    }
+  }
 }
+  
+
 
 export default new BankAccountController();

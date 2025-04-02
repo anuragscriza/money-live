@@ -16,4 +16,8 @@ router.get("/getAllAccounts", Middleware.user, BankAccountController.getAllAccou
 // Get all accounts by type (Bank or UPI)
 router.get("/getAllAccounts/:type", Middleware.user, BankAccountController.getAllAccounts); // Ensure method name exists
 
+// Define the route to get bank account details by userId
+router.get('/bank-account',Middleware.user, BankAccountController.getBankAccountByUserId);
+
+
 export default router;
