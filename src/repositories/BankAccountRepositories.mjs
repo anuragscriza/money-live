@@ -31,7 +31,6 @@ class BankAccountRepository {
   }
   
   async getBankAccountDetailByBankId(filter) {
-    console.log("filter", filter);
     return await BankAccount.findOne(filter).select("bankName accountNumber"); // Use Mongoose findOne()
   }
   // Delete Bank Account by accountId and userId

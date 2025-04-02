@@ -16,7 +16,7 @@ const WithdrawalSchema = new Schema({
     transactionId: { type: String, default: () => Math.floor(100000 + Math.random() * 900000), unique: true },
     amount: { type: Number, required: true },
     bankId: { type: Number, required: true },
-    status: { type: String, default: 'Approved' }
+    status: { type: String, default: 'pending' }
 }, { timestamps: true });
 
 export default model('Withdrawal', WithdrawalSchema);

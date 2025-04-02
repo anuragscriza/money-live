@@ -14,11 +14,15 @@ class WithdrawalController {
             const data = { ...withdrawalData, userId };
             const withdrawal = await WithdrawalRepository.createWithdrawal(data);
 
-            const existingUser = await UserRepository.getUserByUserId(userId);
-            if (!existingUser) { throw new NotFoundError(`User with userId: ${userId} does not exist`); }
+            //const existingUser = await UserRepository.getUserByUserId(userId);
+            const user = await UserRepository.getUserByUserId(userId);
+            const createWithdrawalStatement = { transactionId: withdrawal.withdrawalId, userId: user.userId, userName: user.userName, message: `Hi,${user.userName} your withdrawal request for withdrawalId: ${withdrawal.withdrawalId} has been registered`, amount: withdrawal.amount, closingBalance: user.wallet, category: 'Withdrawal', type: 'Debit', status: withdrawal.status };
+            await StatementRepository.createStatement(createWithdrawalStatement);
+
+            if (!user) { throw new NotFoundError(`User with userId: ${userId} does not exist`); }
             // if (amount > existingUser.winningsAmount) { throw new ValidationError(`Insufficient balance in your winnings, current available balance is ${existingUser.winningsAmount}`); }
-            existingUser.lifetimeWithdrawalAmount += data.amount;
-            existingUser.save();
+            user.lifetimeWithdrawalAmount += data.amount;
+            user.save();
 
             // const user = await UserRepository.getUserByUserId(userId);
             res.status(201).json({ statusCode: 201, success: true, message: 'Withdrawal created successfully', data: withdrawal });
