@@ -141,7 +141,7 @@ class WithdrawalController {
                     message: "Missing 'status' key in query parameters."
                 });
             }
-
+            
             const userId = req.user.userId;
             const filter = { userId }; // Always filter by userId
 

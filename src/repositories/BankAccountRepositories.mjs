@@ -26,7 +26,7 @@ class BankAccountRepository {
     return await BankAccount.find({ userId });
   }
 
-  async getAll() {
+  async getAll() { 
     return await BankAccount.find({}).lean(); // Using `.lean()` for performance optimization
   }
   
