@@ -29,10 +29,9 @@ class BankAccountRepository {
   async getAll() { 
     return await BankAccount.find({}).lean(); // Using `.lean()` for performance optimization
   }
-  
+
   async getBankAccountDetailByBankId(filter) {
-    console.log("filter", filter);
-    return await BankAccount.findOne(filter).select("bankName accountNumber"); // Use Mongoose findOne()
+    return await BankAccount.findOne(filter).select("bankName accountNumber ifscCode"); // Use Mongoose findOne()
   }
   // Delete Bank Account by accountId and userId
   async deleteBankAccountByaccountId(userId, accountId) {
