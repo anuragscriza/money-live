@@ -246,33 +246,23 @@ class CommonHandler {
     }
 
     static async validateBettingRequiredFields(data) {
+        console.log("datavalidatio", data);
         if (!data || typeof data !== "object") {
             return { valid: false, error: "Data must be an object." };
         }
 
-        if (!Array.isArray(data.character)) {
-            return { valid: false, error: "character must be an array." };
-        }
-
-        for (const char of data.character) {
+        for (const char of data.data) {
+            console.log("characterdsfs", char.characterId);
             if (typeof char !== "object") {
                 return { valid: false, error: "Each character entry must be an object." };
             }
 
-            if (!char.character_id || typeof char.character_id !== "string") {
-                return { valid: false, error: "character_id must be a number." };
+            if (!char.characterId || typeof char.characterId !== "string") {
+                return { valid: false, error: "characterId must be a number." };
             }
 
-            if (!char.amount || typeof char.amount !== "string") {
+            if (!char.betAmount || typeof char.betAmount !== "string") {
                 return { valid: false, error: "amount must be a number." };
-            }
-
-            if (!char.win_amount || typeof char.win_amount !== "string") {
-                return { valid: false, error: "win_amount must be number." };
-            }
-
-            if (!char.status || typeof char.status == "string") {
-                return { valid: false, error: "status must be a non-empty string." };
             }
         }
 

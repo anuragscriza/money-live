@@ -4,7 +4,17 @@ import { paginate } from "../project_setup/Utils.mjs";
 
 class BettingRepository {
     static async createBetting(bettingData) {
-        return await Betting.create(bettingData);
+        const bettingId = Math.floor(100000 + Math.random() * 900000);
+        const betsArray = Object.keys(bettingData)
+            .filter(key => !isNaN(key)) // Select only numeric keys (0,1,...)
+            .map(key => ({
+                characterId: bettingData[key].characterId,
+                betAmount: bettingData[key].betAmount,
+                userName: bettingData[key].userName,
+                userId: bettingData[key].userId,
+                bettingId: bettingId
+            }));
+        return await Betting.insertMany(betsArray);
     }
 
     static async getAllBetting(options, req) {

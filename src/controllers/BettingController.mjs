@@ -17,54 +17,15 @@ class BettingController {
     static async createBetting(req, res) {
         //const userId = req.user.userId;
         try {
-            console.log("test");
-            // const bettingData = await BettingController.bettingValidation(req.body);
-            const betting = await BettingRepository.createBetting({ ...req.body, userId: req.user.userId });
+            const bettingData = await BettingController.bettingValidation(req.body, req.user.userId);
+
+            const betting = await BettingRepository.createBetting({ ...bettingData });
             res.status(201).json({ status: 201, success: true, message: 'Betting created successfully', betting });
         } catch (error) {
             console.log("error - ", error);
             CommonHandler.catchError(error, res);
         }
     }
-
-    // static async getDetailsForLatestUserBettingId(req, res) {
-    //     try {
-    //         const { bettingId } = req.query;
-    //         //const characterData = {};
-    //         if (!bettingId) throw new NotFoundError('Please provide bettingId');
-    //         if (!/^[0-9]{6}$/.test(bettingId)) { throw new ValidationError('Invalid betting id format.'); }
-    //         const latestBet = await BettingRepository.getLatestBettingDataOfUser(bettingId);
-    //         console.log("latestBet -", latestBet);
-
-    //         const characterData = await Promise.all(
-    //             latestBet.character.map(async (bet) => {
-    //                 const characterInfo = await CharacterRepository.getUploadCharactersByCharacterId([bet.character_id]);
-    //                 if (characterInfo && Array.isArray(characterInfo) && characterInfo.length > 0) {
-    //                     return {
-    //                         "character": {
-    //                             character_id: bet.character_id,
-    //                             character_name: characterInfo[0].character_name,
-    //                             bet_amount: bet.amount
-    //                         },
-    //                         "game_status": latestBet.game_status
-
-    //                     };
-    //                 }
-    //             })
-    //         );
-
-    //         res.status(200).json({
-    //             status: 200,
-    //             success: true,
-    //             message: 'Latest BettingId details fetched successfully',
-
-    //             characterData
-    //         });
-    //     } catch (error) {
-    //         console.log("error - ", error);
-    //         CommonHandler.catchError(error, res);
-    //     }
-    // }
 
     static async getDetailsForLatestUserBettingId(req, res) {
         try {
@@ -197,37 +158,29 @@ class BettingController {
         return betting;
     }
 
-    static async bettingValidation(data) {
+    static async bettingValidation(data, userId) {
+        console.log("bettingData -- ", data);
         // const { gameId, bettingId, userId, amount, winAmount, status } = data;
-        const { character, userId } = data;
-        await CommonHandler.validateBettingRequiredFields({ character });
+        await CommonHandler.validateBettingRequiredFields({ data });
         //await BettingController.validateFieldTypes({ gameId, bettingId, userId, amount, winAmount, status });
 
         const [minAmount, maxAmount] = await BettingController.getBettingLimits();
         console.log("minAmount - ", minAmount);
         console.log("maxAmount - ", maxAmount);
         // await BettingController.validateBettingAmount(amount, minAmount, maxAmount);
-        await BettingController.validateBettingAmount(character, minAmount, maxAmount);
+        await BettingController.validateBettingAmount(data, minAmount, maxAmount);
 
         const user = await UserRepository.getUserByUserId(userId);
         if (!user) { throw new NotFoundError(`User with userId: ${userId} not found`); }
-        data.userName = user.userName;
-
-        // const referenceUser = await UserRepository.getUserByPromoCode(user.referenceCode);
-
-        // const gameDetails = await AvailableGamesRepository.getAvailableGamesByGameId(gameId)
-
-        // if (!gameDetails) { throw new NotFoundError(`Game with this gameId: ${gameId} not found`); }
-        // data.gameName = gameDetails.name;
-        // console.log(data);
-
-        // if (!user.playedGame.includes(gameDetails.name)) { user.playedGame.push(gameDetails.name); }
-        // await BettingController.processBettingStatus(user, amount, winAmount, status, data);
-
-
+        // Attach userId and userName to each betting object
+        const bettingDataObject = data.map(bet => ({
+            ...bet,
+            userId: user.userId,
+            userName: user.userName
+        }));
         await user.save();
 
-        return data;
+        return bettingDataObject;
     }
 
     static async processBettingStatus(user, referenceUser, amount, winAmount, status, data) {
