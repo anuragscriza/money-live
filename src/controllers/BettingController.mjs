@@ -27,6 +27,47 @@ class BettingController {
         }
     }
 
+    // static async getDetailsForLatestUserBettingId(req, res) {
+    //     try {
+    //         const { bettingId } = req.query;
+    //         if (!bettingId) throw new NotFoundError('Please provide bettingId');
+    //         if (!/^[0-9]{6}$/.test(bettingId)) throw new ValidationError('Invalid betting id format.');
+
+    //         const latestBet = await BettingRepository.getLatestBettingDataOfUser(bettingId);
+    //         const charactersList = await CharacterRepository.getAllUploadCharacters();
+
+    //         if (!latestBet || latestBet.length === 0) {
+    //             return res.status(404).json({ status: 404, success: false, message: 'No betting data found' });
+    //         }
+
+    //         const characterData = await Promise.all(
+    //             latestBet.map(async (bet) => {
+    //                 const character = await CharacterRepository.getUploadCharactersByCharacterId(bet.characterId);
+    //                 return {
+    //                     characterPath: "uploads/characters/" + `${character.name}`,
+    //                     characterName: `${character.name}`,
+    //                     betAmount: bet.amount || 0
+    //                 };
+    //             })
+    //         );
+    //         console.log("characterData - ", characterData);
+
+
+    //         res.status(200).json({
+    //             status: 200,
+    //             success: true,
+    //             message: 'Latest BettingId details fetched successfully',
+    //             characterData: characterData,
+    //             betting_id: latestBet.betting_id,
+    //             createdAt: latestBet.createdAt,
+    //             game_status: "pending"
+    //         });
+    //     } catch (error) {
+    //         console.log("error - ", error);
+    //         CommonHandler.catchError(error, res);
+    //     }
+    // }
+
     static async getDetailsForLatestUserBettingId(req, res) {
         try {
             const { bettingId } = req.query;
@@ -34,39 +75,33 @@ class BettingController {
             if (!/^[0-9]{6}$/.test(bettingId)) throw new ValidationError('Invalid betting id format.');
 
             const latestBet = await BettingRepository.getLatestBettingDataOfUser(bettingId);
-            console.log("latestBet -", latestBet);
-
-            if (!latestBet || !latestBet.character || latestBet.character.length === 0) {
+            if (!latestBet || latestBet.length === 0) {
                 return res.status(404).json({ status: 404, success: false, message: 'No betting data found' });
             }
 
+            // Get all characters once to reduce DB calls
+            const charactersList = await CharacterRepository.getAllUploadCharacters();
+
+            // Map character data
             const characterData = await Promise.all(
-                latestBet.character.map(async (bet) => {
-                    const characterInfo = await CharacterRepository.getUploadCharactersByCharacterId(bet.character_id);
+                latestBet.map(async (bet) => {
+                    const character = await CharacterRepository.getUploadCharactersByCharacterId(bet.characterId);
                     return {
-                        character_id: bet.character_id,
-                        character_image: characterInfo.image,
-                        character_name: characterInfo.name || "Unknown",
-                        bet_amount: bet.amount || 0
+                        characterPath: character ? `uploads/characters/${character.name}` : "uploads/characters/default.png",
+                        characterName: character ? character.name : "Unknown",
+                        betAmount: bet.betAmount || 0
                     };
-
-
                 })
             );
-            console.log("characterData - ", characterData);
-            const filteredCharacterData = characterData.filter(Boolean);
 
             res.status(200).json({
                 status: 200,
                 success: true,
                 message: 'Latest BettingId details fetched successfully',
-                characterData: filteredCharacterData,
-                betting_id: latestBet.betting_id,
-                createdAt: latestBet.createdAt,
+                data: characterData,
                 game_status: "pending"
             });
         } catch (error) {
-            console.log("error - ", error);
             CommonHandler.catchError(error, res);
         }
     }
