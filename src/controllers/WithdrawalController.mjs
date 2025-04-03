@@ -10,23 +10,25 @@ class WithdrawalController {
     static async createWithdrawal(req, res) {
         try {
             const withdrawalData = await WithdrawalController.withdrawalCreateValidation(req);
+            console.log("withdrawalData --", withdrawalData);
             const userId = req.user.userId;
             const data = { ...withdrawalData, userId };
+            console.log("data --", data);
             const withdrawal = await WithdrawalRepository.createWithdrawal(data);
 
-            //const existingUser = await UserRepository.getUserByUserId(userId);
             const user = await UserRepository.getUserByUserId(userId);
             const createWithdrawalStatement = { transactionId: withdrawal.withdrawalId, userId: user.userId, userName: user.userName, message: `Hi,${user.userName} your withdrawal request for withdrawalId: ${withdrawal.withdrawalId} has been registered`, amount: withdrawal.amount, closingBalance: user.wallet, category: 'Withdrawal', type: 'Debit', status: withdrawal.status };
             await StatementRepository.createStatement(createWithdrawalStatement);
 
             if (!user) { throw new NotFoundError(`User with userId: ${userId} does not exist`); }
-            // if (amount > existingUser.winningsAmount) { throw new ValidationError(`Insufficient balance in your winnings, current available balance is ${existingUser.winningsAmount}`); }
+
             user.lifetimeWithdrawalAmount += data.amount;
             user.save();
 
             // const user = await UserRepository.getUserByUserId(userId);
             res.status(201).json({ statusCode: 201, success: true, message: 'Withdrawal created successfully', data: withdrawal });
         } catch (error) {
+            console.log("error --", error);
             CommonHandler.catchError(error, res);
         }
     }
@@ -79,15 +81,15 @@ class WithdrawalController {
         const existingUser = await UserRepository.getUserByUserId(userId);
         if (!existingUser) { throw new NotFoundError(`User with userId: ${userId} does not exist`); }
         if (amount > existingUser.winningsAmount) { throw new ValidationError(`Insufficient balance in your winnings, current available balance is ${existingUser.winningsAmount}`); }
-        existingUser.winningsAmount -= amount;
-        existingUser.save();
+        // existingUser.winningsAmount -= amount;
+        // existingUser.save();
 
-        const bankDetails = await BankDetailsRepository.getAllAccountsByUserId(userId);
-        if (!bankDetails) { throw new NotFoundError(`Bank details not found for userId ${userId} and saveAs ${saveAs}`); }
+        const bankDetails = await BankDetailsRepository.getBankAccountDetailByBankId({ accountId: data.body.bankId });
+        if (!bankDetails) { throw new NotFoundError(`Bank details not found for bankId ${bankId}`); }
 
         // data.body.userId = existingUser.userId;
         // data.body.userName = existingUser.userName;
-        // data.body.bankDetails = { bankName: bankDetails.bankName, accountNumber: bankDetails.accountNumber, ifscCode: bankDetails.ifscCode, upiId: bankDetails.upiId, mobile: bankDetails.mobile };
+        data.body = { bankName: bankDetails.bankName, accountNumber: bankDetails.accountNumber, ifscCode: bankDetails.ifscCode, amount: amount };
 
         const [minWithdrawal, maxWithdrawal] = await WithdrawalController.getWithdrawalLimits();
         await WithdrawalController.validateWithdrawalAmount(amount, minWithdrawal, maxWithdrawal);
