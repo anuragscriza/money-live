@@ -205,6 +205,31 @@ class BankAccountController {
       res.status(500).json({ error: error.message });
     }
   }
+  // Delete a Bank Account by userId
+  // Delete Bank Account by accountId and userId
+  async deleteBankAccountByaccountId(req, res) {
+    try {
+      const userId = req.user.userId; // Extract userId from the authenticated user
+      const { accountId } = req.params; // Extract accountId from the request params
+
+      // Call the repository method to delete the bank account by userId and accountId
+      const result = await BankAccountRepository.deleteBankAccountByaccountId(userId, accountId);
+
+      // If no account is deleted, handle that case
+      if (!result) {
+        return res.status(404).json({ error: "Bank account not found or could not be deleted" });
+      }
+
+      // Return success response
+      return res.status(200).json({
+        message: "Bank account deleted successfully",
+        success: true
+      });
+
+    } catch (error) {
+      res.status(500).json({ error: error.message });
+    }
+  }
 }
   
 

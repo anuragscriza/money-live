@@ -19,5 +19,8 @@ router.get("/getAllAccounts/:type", Middleware.user, BankAccountController.getAl
 // Define the route to get bank account details by userId
 router.get('/bank-account',Middleware.user, BankAccountController.getBankAccountByUserId);
 
+// Delete Bank Account by userId
+router.delete('/bank-account/:accountId',Middleware.user, BankAccountController.deleteBankAccountByaccountId);
+
 
 export default router;

@@ -34,6 +34,23 @@ class BankAccountRepository {
     console.log("filter", filter);
     return await BankAccount.findOne(filter).select("bankName accountNumber"); // Use Mongoose findOne()
   }
-}
+  // Delete Bank Account by accountId and userId
+  async deleteBankAccountByaccountId(userId, accountId) {
+    try {
+      // Try to delete the bank account matching both userId and accountId
+      const result = await BankAccount.deleteOne({ userId, accountId });
+
+      // If no account is found and deleted, return null
+      if (result.deletedCount === 0) {
+        return null; // No account found to delete
+      }
+
+      return { success: true };
+    } catch (error) {
+      throw new Error("Error deleting bank account: " + error.message);
+    }
+  }
+  }
+
 
 export default new BankAccountRepository(); // ✅ Ensure this is a default export
