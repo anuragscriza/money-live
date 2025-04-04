@@ -251,7 +251,7 @@ class CommonHandler {
             return { valid: false, error: "Data must be an object." };
         }
 
-        for (const char of data.data) {
+        for (const char of data.data.betting) {
             console.log("characterdsfs", char.characterId);
             if (typeof char !== "object") {
                 return { valid: false, error: "Each character entry must be an object." };

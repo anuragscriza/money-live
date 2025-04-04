@@ -194,21 +194,18 @@ class BettingController {
     }
 
     static async bettingValidation(data, userId) {
-        console.log("bettingData -- ", data);
         // const { gameId, bettingId, userId, amount, winAmount, status } = data;
         await CommonHandler.validateBettingRequiredFields({ data });
         //await BettingController.validateFieldTypes({ gameId, bettingId, userId, amount, winAmount, status });
 
         const [minAmount, maxAmount] = await BettingController.getBettingLimits();
-        console.log("minAmount - ", minAmount);
-        console.log("maxAmount - ", maxAmount);
         // await BettingController.validateBettingAmount(amount, minAmount, maxAmount);
         await BettingController.validateBettingAmount(data, minAmount, maxAmount);
 
         const user = await UserRepository.getUserByUserId(userId);
         if (!user) { throw new NotFoundError(`User with userId: ${userId} not found`); }
         // Attach userId and userName to each betting object
-        const bettingDataObject = data.map(bet => ({
+        const bettingDataObject = data.betting.map(bet => ({
             ...bet,
             userId: user.userId,
             userName: user.userName
@@ -297,10 +294,11 @@ class BettingController {
         return [parseInt(minAmountSetting.value), parseInt(maxAmountSetting.value)];
     }
 
-    static async validateBettingAmount(characters, minAmount, maxAmount) {
-        for (const character of characters) {
-            if (character.amount <= minAmount) throw new ValidationError(`Betting amount must be greater than Minimum Bet Amount: ${minAmount}`);
-            if (character.amount >= maxAmount) throw new ValidationError(`Betting amount must be less than Maximum Bet Amount: ${maxAmount}`);
+    static async validateBettingAmount(bettingData, minAmount, maxAmount) {
+        console.log("characters --", bettingData.betting)
+        for (const bettingCharacter of bettingData.betting) {
+            if (bettingCharacter.betAmount <= minAmount) throw new ValidationError(`Betting amount must be greater than Minimum Bet Amount: ${minAmount}`);
+            if (bettingCharacter.betAmount >= maxAmount) throw new ValidationError(`Betting amount must be less than Maximum Bet Amount: ${maxAmount}`);
         }
     }
 
