@@ -87,7 +87,7 @@ class BettingController {
                 latestBet.map(async (bet) => {
                     const character = await CharacterRepository.getUploadCharactersByCharacterId(bet.characterId);
                     return {
-                        characterPath: character ? `uploads/characters/${character.name}` : "uploads/characters/default.png",
+                        characterPath: character ? `uploads/characters/${character.name}.png` : "uploads/characters/default.png",
                         characterName: character ? character.name : "Unknown",
                         betAmount: bet.betAmount || 0
                     };
@@ -302,62 +302,6 @@ class BettingController {
         }
     }
 
-    static async getBettingStatus(req, res) {
-        let winner = null;
-        let minBetAmount = Infinity;
-        const { createdAt } = req.query;
-        //if (!bettingId) throw new NotFoundError('Please Provide Betting Id');
-        //if (!/^[0-9]{6}$/.test(bettingId)) { throw new ValidationError('Invalid bettingId format.'); }
-        const bets = await BettingRepository.getBettingData(createdAt);
-        // console.log("bettingResult -- ", bettingResult);
-        if (bets && bets.length > 0) {
-            // bettingResult.forEach((bet) => {
-
-            //     console.log("bet data --", bet);
-            //     // If you need to access individual character objects
-            //     // bet.character.forEach((char, index) => {
-            //     //     console.log(`Character ${index + 1}:`, char);
-            //     // });
-            // });
-            // Loop through all bets and their characters
-            for (const bet of bets) {
-                for (const character of bet.character) {
-                    if (character.amount < minBetAmount) {
-                        minBetAmount = character.amount;
-                        winner = {
-                            userId: bet.userId,
-                            character_id: character.character_id,
-                            amount: character.amount,
-                            betting_id: bet.betting_id
-                        };
-                    }
-                }
-            }
-
-            // Update winning data
-            for (const bet of bets) {
-                for (const character of bet.character) {
-                    if (character.character_id === winner.character_id && character.amount === minBetAmount) {
-                        console.log("character --", character);
-                        character.win_amount = character.amount * 2;
-                        character.status = 'Winner';
-                        character.character_id = winner.character_id;
-                        character.betting_id = winner.betting_id;
-                        await BettingRepository.updateBettingWinnerStatus(character);
-                        // await BettingRepository.updateBettingLooserStatus(character);
-                    } else {
-                        character.status = 'Lost';
-                    }
-                }
-            }
-
-            console.log('Winner:', winner);
-            //return bets; // Return updated data with win/loss status
-        } else {
-            console.log('No data found.');
-        }
-    }
-
     // static async getBettingHistory(req, res) {
     //     try {
     //         const userId = req.user.userId;
@@ -462,8 +406,6 @@ class BettingController {
 
     static async getBettingHistoryUsingGameId(req, res) {
         try {
-            ///console.log();
-            //console.log("query --", req.query.gameId);
             const userId = req.user.userId;
             const bettingData = await BettingRepository.bettingHistoryByGameIdAndUserId(userId, req.query.gameId);
             const charactersList = await CharacterRepository.getAllUploadCharacters();
@@ -601,6 +543,75 @@ class BettingController {
             });
         }
     }
+
+    static async getBettingStatus(req, res) {
+        let winner = null;
+        let minBetAmount = Infinity;
+        const userId = req.user.userId;
+        const bettingId = req.query.bettingId;
+        if (!bettingId) throw new NotFoundError('Please Provide Betting Id aise kaam nhi chalega');
+        if (!/^[0-9]{6}$/.test(bettingId)) { throw new ValidationError('Invalid bettingId format.'); }
+        const bets = await BettingRepository.getBettingData(bettingId, userId);
+
+        if (bets && bets.length > 0) {
+            const gameId = await BettingController.generateUniqueGameId();
+            // Loop through all bets and their characters
+            for (const bet of bets) {
+
+                //for (const character of bet.character) {
+                if (bet.betAmount < minBetAmount) {
+                    minBetAmount = bet.betAmount;
+                    winner = {
+                        userId: bet.userId,
+                        bettingId: bet.bettingId,
+                        characterId: bet.characterId
+                    };
+                }
+                //}
+            }
+
+            // Update winning data
+            for (const bet of bets) {
+                bet.gameId = gameId;
+                //for (const character of bet.character) {
+                if (bet.characterId === winner.characterId && bet.betAmount === minBetAmount) {
+                    bet.winAmount = bet.betAmount * 2;
+                    bet.characterStatus = 'Winner';
+                    bet.characterId = winner.characterId;
+                    bet.bettingId = winner.bettingId;
+                    await BettingRepository.updateBettingWinnerStatus(bet);
+                    // await BettingRepository.updateGameId(gameId);
+                    // await BettingRepository.updateBettingLooserStatus(character);
+                }
+                await BettingRepository.updateGameId(gameId);
+                // }
+            }
+
+            console.log('Winner:', winner);
+            res.status(200).json({
+                statusCode: 200,
+                success: true,
+                message: "Testing Phase Going On",
+                bettingResult: winner
+            });
+            //return bets; // Return updated data with win/loss status
+        } else {
+            console.log('No data found.');
+        }
+    }
+
+    static async generateUniqueGameId() {
+        let gameId;
+        let isUnique = false;
+
+        while (!isUnique) {
+            gameId = Math.floor(100000 + Math.random() * 900000); // Generate 6-digit number
+            isUnique = !(await BettingRepository.isGameIdExists(gameId));
+        }
+
+        return gameId;
+    }
+
 }
 
 export default BettingController;

@@ -17,9 +17,9 @@ class BettingRepository {
         return await Betting.insertMany(betsArray);
     }
 
-    static async getAllBetting(options, req) {
-        return await paginate(Betting, {}, options.page, options.limit, req);
-    }
+    // static async getAllBetting(options, req) {
+    //     return await paginate(Betting, {}, options.page, options.limit, req);
+    // }
 
     static async getBettingById(id) {
         return await Betting.findById(id);
@@ -88,10 +88,34 @@ class BettingRepository {
     }
 
     // create winner logic
-    static async getBettingData(createdAt) {
+    // static async getBettingData(bettingId) {
+    //     try {
+    //         const bettingData = await Betting.find({
+    //             createdAt: new Date(createdAt),
+    //         });
+    //         return bettingData;
+    //     } catch (error) {
+    //         console.error("Error fetching betting data:", error);
+    //         throw new Error("Failed to fetch betting data.");
+    //     }
+    // }
+
+    static async getBettingData(bettingId, userId) {
         try {
+            const betting = await Betting.findOne({ "bettingId": bettingId });
+            console.log("betting", betting);
+            if (!betting) {
+                throw new Error("Betting record not found.");
+            }
+
+            const toTime = betting.createdAt;
+            const fromTime = new Date(toTime.getTime() - 60 * 1000);
             const bettingData = await Betting.find({
-                createdAt: new Date(createdAt),
+                //user: userId,
+                createdAt: {
+                    $gte: fromTime.toISOString(),
+                    $lte: toTime.toISOString(),
+                },
             });
             return bettingData;
         } catch (error) {
@@ -100,34 +124,19 @@ class BettingRepository {
         }
     }
 
+
     static async updateBettingWinnerStatus(characterData) {
         await Betting.updateOne(
             {
-                betting_id: characterData.betting_id, // Add betting_id condition
-                "character.character_id": characterData.character_id, // Match the nested object
+                bettingId: characterData.bettingId, // Add betting_id condition
+                characterId: characterData.characterId, // Match the nested object
             },
             {
                 $set: {
-                    "character.$.win_amount": characterData.win_amount, // Update win_amount in matched object
-                    "character.$.status": characterData.status,
-                    game_status: "Completed", // Update game_status
+                    winAmount: characterData.winAmount, // Update win_amount in matched object
+                    characterStatus: characterData.characterStatus,
+                    gameStatus: "Completed", // Update game_status
                 },
-            }
-        );
-
-        await Betting.updateOne(
-            {
-                betting_id: characterData.betting_id,
-            },
-            {
-                $set: {
-                    "character.$[elem].status": "Looser", // Mark remaining as 'Loser'
-                },
-            },
-            {
-                arrayFilters: [
-                    { "elem.character_id": { $ne: characterData.character_id } },
-                ], // Exclude the winner
             }
         );
     }
@@ -166,6 +175,31 @@ class BettingRepository {
             ? { totalBetAmount: result[0].totalBetAmount, }
             : { totalAmount: 0 };
     }
+
+    static async isGameIdExists(gameId) {
+        const existing = await Betting.findOne({ where: { gameId } });
+        return !!existing;
+    }
+
+    static async updateLooserGameStatusAndGameId(gameId) {
+        await Betting.updateOne(
+            {
+                bettingId: bettingId
+            },
+            {
+                $set: {
+                    "characters.$[elem].gameId": gameId
+                }
+            },
+            {
+                arrayFilters: [
+                    { "elem.characterStatus": "Looser" }
+                ]
+            }
+        );
+    }
+
+
 }
 
 export default BettingRepository;

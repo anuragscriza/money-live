@@ -9,7 +9,7 @@ const router = express.Router();
 router.post('/createBetting', Middleware.user, BettingController.createBetting);
 
 // GET /Route to get a latest Betting by user id
-router.get('/getBettingDetails', BettingController.getDetailsForLatestUserBettingId);
+///router.get('/getBettingDetails', BettingController.getDetailsForLatestUserBettingId);
 
 // GET /Route to get a disribution wallet details
 router.post('/distributionWalletDetails', BettingController.distributionWalletDetails);
@@ -31,7 +31,7 @@ router.put('/updateBettingById/:id', BettingController.updateBettingById);
 router.delete('/deleteBettingById/:id', BettingController.deleteBettingById);
 
 // get betting winner
-router.get('/getBettingStatus', BettingController.getBettingStatus);
+router.get('/getBettingStatus', Middleware.user, BettingController.getBettingStatus);
 
 //get betting history
 router.get('/getBettingHistory', Middleware.user, BettingController.getBettingHistory);
@@ -41,7 +41,7 @@ router.get('/getBettingHistoryByGameId', Middleware.user, BettingController.getB
 // Route to get betting stats for a user
 // router.get('/betting/:userId/stats',Middleware.user, BettingController.getBettingSumByUser);
 // Route to get betting stats for a user
-router.get('/betting/:userId',Middleware.user, BettingController.getBettingSumByUser);
+router.get('/betting/:userId', Middleware.user, BettingController.getBettingSumByUser);
 
 
 
