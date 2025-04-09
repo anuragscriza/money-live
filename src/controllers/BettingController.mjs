@@ -553,7 +553,7 @@ class BettingController {
         if (!bettingId) throw new NotFoundError('Please Provide Betting Id aise kaam nhi chalega');
         if (!/^[0-9]{6}$/.test(bettingId)) { throw new ValidationError('Invalid bettingId format.'); }
         const bets = await BettingRepository.getBettingData(bettingId, userId);
-
+        const userData = await UserRepository.getUserByUserId(userId);
         if (bets && bets.length > 0) {
             const gameId = await BettingController.generateUniqueGameId();
             // Loop through all bets and their characters
@@ -565,6 +565,7 @@ class BettingController {
                     const character = await CharacterRepository.getUploadCharactersByCharacterId(bet.characterId)
                     winner = {
                         userId: bet.userId,
+                        userName: userData.userName,
                         bettingId: bet.bettingId,
                         characterPath: `uploads/characters/${character.name}.png`,
                         characterId: bet.characterId,
@@ -597,11 +598,13 @@ class BettingController {
                 await BettingRepository.updateLooserGameStatusAndGameId(bettingId, gameId);
             }
             //console.log("winningData", winningData);
+            console.log("winner bettingId", winner.bettingId);
+            console.log("request BettingId", bettingId)
             res.status(200).json({
                 statusCode: 200,
                 success: true,
                 message: "Winner gets successfully",
-                gameStatus: winner.bettingId === bettingId ? "Winner" : "Looser",
+                gameStatus: winner.bettingId == bettingId ? "Winner" : "Looser",
                 bettingResult: { ...winner, winningAmount }
             });
 
