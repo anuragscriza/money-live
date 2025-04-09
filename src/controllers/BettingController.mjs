@@ -547,7 +547,7 @@ class BettingController {
     static async getBettingStatus(req, res) {
         let winner = null;
         let minBetAmount = Infinity;
-        let winningData = null;
+        let winningAmount = 0;
         const userId = req.user.userId;
         const bettingId = req.query.bettingId;
         if (!bettingId) throw new NotFoundError('Please Provide Betting Id aise kaam nhi chalega');
@@ -581,11 +581,13 @@ class BettingController {
 
                 //for (const character of bet.character) {
                 if (bet.characterId === winner.characterId && bet.betAmount === minBetAmount) {
-                    bet.winAmount = bet.betAmount * 2;
+                    //if (bet.betAmount === minBetAmount) {
+                    bet.winAmount = bet.betAmount * 3;
                     bet.characterStatus = 'Winner';
                     bet.characterId = winner.characterId;
                     bet.bettingId = winner.bettingId;
-                    winningData = await BettingRepository.updateBettingWinnerStatus(bet);
+                    await BettingRepository.updateBettingWinnerStatus(bet);
+                    winningAmount = bet.winAmount;
                 }
                 updatedBettingIds.add(bet.bettingId);
             }
@@ -594,13 +596,13 @@ class BettingController {
             for (const bettingId of updatedBettingIds) {
                 await BettingRepository.updateLooserGameStatusAndGameId(bettingId, gameId);
             }
-
+            //console.log("winningData", winningData);
             res.status(200).json({
                 statusCode: 200,
                 success: true,
                 message: "Winner gets successfully",
                 gameStatus: winner.bettingId === bettingId ? "Winner" : "Looser",
-                bettingResult: winner
+                bettingResult: { ...winner, winningAmount }
             });
 
         } else {
