@@ -126,6 +126,7 @@ class BettingRepository {
 
 
     static async updateBettingWinnerStatus(characterData) {
+        console.log("characterData --++ == ", characterData)
         await Betting.updateOne(
             {
                 bettingId: characterData.bettingId, // Add betting_id condition
@@ -136,6 +137,7 @@ class BettingRepository {
                     winAmount: characterData.winAmount, // Update win_amount in matched object
                     characterStatus: characterData.characterStatus,
                     gameStatus: "Completed", // Update game_status
+                    gameId: characterData.gameId
                 },
             }
         );
@@ -181,20 +183,18 @@ class BettingRepository {
         return !!existing;
     }
 
-    static async updateLooserGameStatusAndGameId(gameId) {
-        await Betting.updateOne(
+    static async updateLooserGameStatusAndGameId(bettingId, gameId) {
+        await Betting.updateMany(
             {
-                bettingId: bettingId
+                bettingId: bettingId,
+                characterStatus: { $ne: "Winner" }, // Exclude winners
             },
             {
                 $set: {
-                    "characters.$[elem].gameId": gameId
+                    gameId: gameId,
+                    characterStatus: "Looser",
+                    gameStatus: "Completed"
                 }
-            },
-            {
-                arrayFilters: [
-                    { "elem.characterStatus": "Looser" }
-                ]
             }
         );
     }

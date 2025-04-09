@@ -547,6 +547,7 @@ class BettingController {
     static async getBettingStatus(req, res) {
         let winner = null;
         let minBetAmount = Infinity;
+        let winningData = null;
         const userId = req.user.userId;
         const bettingId = req.query.bettingId;
         if (!bettingId) throw new NotFoundError('Please Provide Betting Id aise kaam nhi chalega');
@@ -558,43 +559,50 @@ class BettingController {
             // Loop through all bets and their characters
             for (const bet of bets) {
 
-                //for (const character of bet.character) {
                 if (bet.betAmount < minBetAmount) {
+
                     minBetAmount = bet.betAmount;
+                    const character = await CharacterRepository.getUploadCharactersByCharacterId(bet.characterId)
                     winner = {
                         userId: bet.userId,
                         bettingId: bet.bettingId,
-                        characterId: bet.characterId
+                        characterPath: `uploads/characters/${character.name}.png`,
+                        characterId: bet.characterId,
+                        characterName: character.name,
+                        gameId: gameId
                     };
                 }
-                //}
             }
 
+            const updatedBettingIds = new Set();
             // Update winning data
             for (const bet of bets) {
                 bet.gameId = gameId;
+
                 //for (const character of bet.character) {
                 if (bet.characterId === winner.characterId && bet.betAmount === minBetAmount) {
                     bet.winAmount = bet.betAmount * 2;
                     bet.characterStatus = 'Winner';
                     bet.characterId = winner.characterId;
                     bet.bettingId = winner.bettingId;
-                    await BettingRepository.updateBettingWinnerStatus(bet);
-                    // await BettingRepository.updateGameId(gameId);
-                    // await BettingRepository.updateBettingLooserStatus(character);
+                    winningData = await BettingRepository.updateBettingWinnerStatus(bet);
                 }
-                await BettingRepository.updateGameId(gameId);
-                // }
+                updatedBettingIds.add(bet.bettingId);
             }
 
-            console.log('Winner:', winner);
+            // ✅ Now update losers only once per unique bettingId
+            for (const bettingId of updatedBettingIds) {
+                await BettingRepository.updateLooserGameStatusAndGameId(bettingId, gameId);
+            }
+
             res.status(200).json({
                 statusCode: 200,
                 success: true,
-                message: "Testing Phase Going On",
+                message: "Winner gets successfully",
+                gameStatus: winner.bettingId === bettingId ? "Winner" : "Looser",
                 bettingResult: winner
             });
-            //return bets; // Return updated data with win/loss status
+
         } else {
             console.log('No data found.');
         }
