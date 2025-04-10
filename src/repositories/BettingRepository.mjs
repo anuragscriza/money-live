@@ -143,23 +143,41 @@ class BettingRepository {
         );
     }
 
+    // static async bettingHistory(userId) {
+    //     return await Betting.find({
+    //         userId: userId,
+    //         gameStatus: "Completed",
+    //         //characterStatus: "Winner",
+    //     })
+    //         .sort({ createdAt: -1 })
+    //         .select(
+    //             "userId gameId userName characterId betAmount winAmount bettingId"
+    //         );
+    // }
+
     static async bettingHistory(userId) {
-        return await Betting.find({
+        // Step 1: Get all completed bets for the user
+        const userBets = await Betting.find({
             userId: userId,
-            gameStatus: "Complete",
-            characterStatus: "Winner",
+            gameStatus: "Completed",
+        }).sort({ createdAt: -1 });
+
+        const gameIds = [...new Set(userBets.map(bet => bet.gameId))];
+
+        const winnerRecords = await Betting.find({
+            gameId: { $in: gameIds },
+            characterStatus: "Winner"
         })
-            .sort({ createdAt: -1 })
-            .select(
-                "userId gameId userName characterId betAmount winAmount bettingId"
-            );
+            .select("userId gameId userName characterId betAmount winAmount bettingId");
+
+        return winnerRecords;
     }
 
     static async bettingHistoryByGameIdAndUserId(userId, gameId) {
         return await Betting.find({
             userId: userId,
             gameId: gameId,
-            gameStatus: "Complete",
+            gameStatus: "Completed",
         })
             .sort({ createdAt: -1 })
             .select(

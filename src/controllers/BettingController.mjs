@@ -354,7 +354,6 @@ class BettingController {
             const userId = req.user.userId;
             const bettingData = await BettingRepository.bettingHistory(userId);
             const charactersList = await CharacterRepository.getAllUploadCharacters();
-
             // Handle case where bettingData is empty
             if (!bettingData || bettingData.length === 0) {
                 return res.status(200).json({

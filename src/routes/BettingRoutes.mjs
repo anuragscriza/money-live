@@ -9,7 +9,7 @@ const router = express.Router();
 router.post('/createBetting', Middleware.user, BettingController.createBetting);
 
 // GET /Route to get a latest Betting by user id
-///router.get('/getBettingDetails', BettingController.getDetailsForLatestUserBettingId);
+router.get('/getBettingDetails', BettingController.getDetailsForLatestUserBettingId);
 
 // GET /Route to get a disribution wallet details
 router.post('/distributionWalletDetails', BettingController.distributionWalletDetails);
