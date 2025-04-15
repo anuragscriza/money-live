@@ -17,9 +17,9 @@ class BettingController {
     static async createBetting(req, res) {
         //const userId = req.user.userId;
         try {
-            console.log("test");
-            // const bettingData = await BettingController.bettingValidation(req.body);
-            const betting = await BettingRepository.createBetting({ ...req.body, userId: req.user.userId });
+            const bettingData = await BettingController.bettingValidation(req.body, req.user.userId);
+
+            const betting = await BettingRepository.createBetting({ ...bettingData });
             res.status(201).json({ status: 201, success: true, message: 'Betting created successfully', betting });
         } catch (error) {
             console.log("error - ", error);
@@ -30,35 +30,37 @@ class BettingController {
     // static async getDetailsForLatestUserBettingId(req, res) {
     //     try {
     //         const { bettingId } = req.query;
-    //         //const characterData = {};
     //         if (!bettingId) throw new NotFoundError('Please provide bettingId');
-    //         if (!/^[0-9]{6}$/.test(bettingId)) { throw new ValidationError('Invalid betting id format.'); }
+    //         if (!/^[0-9]{6}$/.test(bettingId)) throw new ValidationError('Invalid betting id format.');
+
     //         const latestBet = await BettingRepository.getLatestBettingDataOfUser(bettingId);
-    //         console.log("latestBet -", latestBet);
+    //         const charactersList = await CharacterRepository.getAllUploadCharacters();
+
+    //         if (!latestBet || latestBet.length === 0) {
+    //             return res.status(404).json({ status: 404, success: false, message: 'No betting data found' });
+    //         }
 
     //         const characterData = await Promise.all(
-    //             latestBet.character.map(async (bet) => {
-    //                 const characterInfo = await CharacterRepository.getUploadCharactersByCharacterId([bet.character_id]);
-    //                 if (characterInfo && Array.isArray(characterInfo) && characterInfo.length > 0) {
-    //                     return {
-    //                         "character": {
-    //                             character_id: bet.character_id,
-    //                             character_name: characterInfo[0].character_name,
-    //                             bet_amount: bet.amount
-    //                         },
-    //                         "game_status": latestBet.game_status
-
-    //                     };
-    //                 }
+    //             latestBet.map(async (bet) => {
+    //                 const character = await CharacterRepository.getUploadCharactersByCharacterId(bet.characterId);
+    //                 return {
+    //                     characterPath: "uploads/characters/" + `${character.name}`,
+    //                     characterName: `${character.name}`,
+    //                     betAmount: bet.amount || 0
+    //                 };
     //             })
     //         );
+    //         console.log("characterData - ", characterData);
+
 
     //         res.status(200).json({
     //             status: 200,
     //             success: true,
     //             message: 'Latest BettingId details fetched successfully',
-
-    //             characterData
+    //             characterData: characterData,
+    //             betting_id: latestBet.betting_id,
+    //             createdAt: latestBet.createdAt,
+    //             game_status: "pending"
     //         });
     //     } catch (error) {
     //         console.log("error - ", error);
@@ -73,39 +75,33 @@ class BettingController {
             if (!/^[0-9]{6}$/.test(bettingId)) throw new ValidationError('Invalid betting id format.');
 
             const latestBet = await BettingRepository.getLatestBettingDataOfUser(bettingId);
-            console.log("latestBet -", latestBet);
-
-            if (!latestBet || !latestBet.character || latestBet.character.length === 0) {
+            if (!latestBet || latestBet.length === 0) {
                 return res.status(404).json({ status: 404, success: false, message: 'No betting data found' });
             }
 
+            // Get all characters once to reduce DB calls
+            const charactersList = await CharacterRepository.getAllUploadCharacters();
+
+            // Map character data
             const characterData = await Promise.all(
-                latestBet.character.map(async (bet) => {
-                    const characterInfo = await CharacterRepository.getUploadCharactersByCharacterId(bet.character_id);
+                latestBet.map(async (bet) => {
+                    const character = await CharacterRepository.getUploadCharactersByCharacterId(bet.characterId);
                     return {
-                        character_id: bet.character_id,
-                        character_image: characterInfo.image,
-                        character_name: characterInfo.name || "Unknown",
-                        bet_amount: bet.amount || 0
+                        characterPath: character ? `uploads/characters/${character.name}.png` : "uploads/characters/default.png",
+                        characterName: character ? character.name : "Unknown",
+                        betAmount: bet.betAmount || 0
                     };
-
-
                 })
             );
-            console.log("characterData - ", characterData);
-            const filteredCharacterData = characterData.filter(Boolean);
 
             res.status(200).json({
                 status: 200,
                 success: true,
                 message: 'Latest BettingId details fetched successfully',
-                characterData: filteredCharacterData,
-                betting_id: latestBet.betting_id,
-                createdAt: latestBet.createdAt,
+                data: characterData,
                 game_status: "pending"
             });
         } catch (error) {
-            console.log("error - ", error);
             CommonHandler.catchError(error, res);
         }
     }
@@ -197,37 +193,26 @@ class BettingController {
         return betting;
     }
 
-    static async bettingValidation(data) {
+    static async bettingValidation(data, userId) {
         // const { gameId, bettingId, userId, amount, winAmount, status } = data;
-        const { character, userId } = data;
-        await CommonHandler.validateBettingRequiredFields({ character });
+        await CommonHandler.validateBettingRequiredFields({ data });
         //await BettingController.validateFieldTypes({ gameId, bettingId, userId, amount, winAmount, status });
 
         const [minAmount, maxAmount] = await BettingController.getBettingLimits();
-        console.log("minAmount - ", minAmount);
-        console.log("maxAmount - ", maxAmount);
         // await BettingController.validateBettingAmount(amount, minAmount, maxAmount);
-        await BettingController.validateBettingAmount(character, minAmount, maxAmount);
+        await BettingController.validateBettingAmount(data, minAmount, maxAmount);
 
         const user = await UserRepository.getUserByUserId(userId);
         if (!user) { throw new NotFoundError(`User with userId: ${userId} not found`); }
-        data.userName = user.userName;
-
-        // const referenceUser = await UserRepository.getUserByPromoCode(user.referenceCode);
-
-        // const gameDetails = await AvailableGamesRepository.getAvailableGamesByGameId(gameId)
-
-        // if (!gameDetails) { throw new NotFoundError(`Game with this gameId: ${gameId} not found`); }
-        // data.gameName = gameDetails.name;
-        // console.log(data);
-
-        // if (!user.playedGame.includes(gameDetails.name)) { user.playedGame.push(gameDetails.name); }
-        // await BettingController.processBettingStatus(user, amount, winAmount, status, data);
-
-
+        // Attach userId and userName to each betting object
+        const bettingDataObject = data.betting.map(bet => ({
+            ...bet,
+            userId: user.userId,
+            userName: user.userName
+        }));
         await user.save();
 
-        return data;
+        return bettingDataObject;
     }
 
     static async processBettingStatus(user, referenceUser, amount, winAmount, status, data) {
@@ -309,66 +294,11 @@ class BettingController {
         return [parseInt(minAmountSetting.value), parseInt(maxAmountSetting.value)];
     }
 
-    static async validateBettingAmount(characters, minAmount, maxAmount) {
-        for (const character of characters) {
-            if (character.amount <= minAmount) throw new ValidationError(`Betting amount must be greater than Minimum Bet Amount: ${minAmount}`);
-            if (character.amount >= maxAmount) throw new ValidationError(`Betting amount must be less than Maximum Bet Amount: ${maxAmount}`);
-        }
-    }
-
-    static async getBettingStatus(req, res) {
-        let winner = null;
-        let minBetAmount = Infinity;
-        const { createdAt } = req.query;
-        //if (!bettingId) throw new NotFoundError('Please Provide Betting Id');
-        //if (!/^[0-9]{6}$/.test(bettingId)) { throw new ValidationError('Invalid bettingId format.'); }
-        const bets = await BettingRepository.getBettingData(createdAt);
-        // console.log("bettingResult -- ", bettingResult);
-        if (bets && bets.length > 0) {
-            // bettingResult.forEach((bet) => {
-
-            //     console.log("bet data --", bet);
-            //     // If you need to access individual character objects
-            //     // bet.character.forEach((char, index) => {
-            //     //     console.log(`Character ${index + 1}:`, char);
-            //     // });
-            // });
-            // Loop through all bets and their characters
-            for (const bet of bets) {
-                for (const character of bet.character) {
-                    if (character.amount < minBetAmount) {
-                        minBetAmount = character.amount;
-                        winner = {
-                            userId: bet.userId,
-                            character_id: character.character_id,
-                            amount: character.amount,
-                            betting_id: bet.betting_id
-                        };
-                    }
-                }
-            }
-
-            // Update winning data
-            for (const bet of bets) {
-                for (const character of bet.character) {
-                    if (character.character_id === winner.character_id && character.amount === minBetAmount) {
-                        console.log("character --", character);
-                        character.win_amount = character.amount * 2;
-                        character.status = 'Winner';
-                        character.character_id = winner.character_id;
-                        character.betting_id = winner.betting_id;
-                        await BettingRepository.updateBettingWinnerStatus(character);
-                        // await BettingRepository.updateBettingLooserStatus(character);
-                    } else {
-                        character.status = 'Lost';
-                    }
-                }
-            }
-
-            console.log('Winner:', winner);
-            //return bets; // Return updated data with win/loss status
-        } else {
-            console.log('No data found.');
+    static async validateBettingAmount(bettingData, minAmount, maxAmount) {
+        console.log("characters --", bettingData.betting)
+        for (const bettingCharacter of bettingData.betting) {
+            if (bettingCharacter.betAmount <= minAmount) throw new ValidationError(`Betting amount must be greater than Minimum Bet Amount: ${minAmount}`);
+            if (bettingCharacter.betAmount >= maxAmount) throw new ValidationError(`Betting amount must be less than Maximum Bet Amount: ${maxAmount}`);
         }
     }
 
@@ -424,7 +354,6 @@ class BettingController {
             const userId = req.user.userId;
             const bettingData = await BettingRepository.bettingHistory(userId);
             const charactersList = await CharacterRepository.getAllUploadCharacters();
-
             // Handle case where bettingData is empty
             if (!bettingData || bettingData.length === 0) {
                 return res.status(200).json({
@@ -476,8 +405,6 @@ class BettingController {
 
     static async getBettingHistoryUsingGameId(req, res) {
         try {
-            ///console.log();
-            //console.log("query --", req.query.gameId);
             const userId = req.user.userId;
             const bettingData = await BettingRepository.bettingHistoryByGameIdAndUserId(userId, req.query.gameId);
             const charactersList = await CharacterRepository.getAllUploadCharacters();
@@ -616,6 +543,88 @@ class BettingController {
         }
     }
     
+
+    static async getBettingStatus(req, res) {
+        let winner = null;
+        let minBetAmount = Infinity;
+        let winningAmount = 0;
+        const userId = req.user.userId;
+        const bettingId = req.query.bettingId;
+        if (!bettingId) throw new NotFoundError('Please Provide Betting Id aise kaam nhi chalega');
+        if (!/^[0-9]{6}$/.test(bettingId)) { throw new ValidationError('Invalid bettingId format.'); }
+        const bets = await BettingRepository.getBettingData(bettingId, userId);
+        const userData = await UserRepository.getUserByUserId(userId);
+        if (bets && bets.length > 0) {
+            const gameId = await BettingController.generateUniqueGameId();
+            // Loop through all bets and their characters
+            for (const bet of bets) {
+
+                if (bet.betAmount < minBetAmount) {
+
+                    minBetAmount = bet.betAmount;
+                    const character = await CharacterRepository.getUploadCharactersByCharacterId(bet.characterId)
+                    winner = {
+                        userId: bet.userId,
+                        userName: userData.userName,
+                        bettingId: bet.bettingId,
+                        characterPath: `uploads/characters/${character.name}.png`,
+                        characterId: bet.characterId,
+                        characterName: character.name,
+                        gameId: gameId
+                    };
+                }
+            }
+
+            const updatedBettingIds = new Set();
+            // Update winning data
+            for (const bet of bets) {
+                bet.gameId = gameId;
+
+                //for (const character of bet.character) {
+                if (bet.characterId === winner.characterId && bet.betAmount === minBetAmount) {
+                    //if (bet.betAmount === minBetAmount) {
+                    bet.winAmount = bet.betAmount * 3;
+                    bet.characterStatus = 'Winner';
+                    bet.characterId = winner.characterId;
+                    bet.bettingId = winner.bettingId;
+                    await BettingRepository.updateBettingWinnerStatus(bet);
+                    winningAmount = bet.winAmount;
+                }
+                updatedBettingIds.add(bet.bettingId);
+            }
+
+            // ✅ Now update losers only once per unique bettingId
+            for (const bettingId of updatedBettingIds) {
+                await BettingRepository.updateLooserGameStatusAndGameId(bettingId, gameId);
+            }
+            //console.log("winningData", winningData);
+            console.log("winner bettingId", winner.bettingId);
+            console.log("request BettingId", bettingId)
+            res.status(200).json({
+                statusCode: 200,
+                success: true,
+                message: "Winner gets successfully",
+                gameStatus: winner.bettingId == bettingId ? "Winner" : "Looser",
+                bettingResult: { ...winner, winningAmount }
+            });
+
+        } else {
+            console.log('No data found.');
+        }
+    }
+
+    static async generateUniqueGameId() {
+        let gameId;
+        let isUnique = false;
+
+        while (!isUnique) {
+            gameId = Math.floor(100000 + Math.random() * 900000); // Generate 6-digit number
+            isUnique = !(await BettingRepository.isGameIdExists(gameId));
+        }
+
+        return gameId;
+    }
+
 }
 
 export default BettingController;

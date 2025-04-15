@@ -4,12 +4,22 @@ import { paginate } from "../project_setup/Utils.mjs";
 
 class BettingRepository {
     static async createBetting(bettingData) {
-        return await Betting.create(bettingData);
+        const bettingId = Math.floor(100000 + Math.random() * 900000);
+        const betsArray = Object.keys(bettingData)
+            .filter(key => !isNaN(key)) // Select only numeric keys (0,1,...)
+            .map(key => ({
+                characterId: bettingData[key].characterId,
+                betAmount: bettingData[key].betAmount,
+                userName: bettingData[key].userName,
+                userId: bettingData[key].userId,
+                bettingId: bettingId
+            }));
+        return await Betting.insertMany(betsArray);
     }
 
-    static async getAllBetting(options, req) {
-        return await paginate(Betting, {}, options.page, options.limit, req);
-    }
+    // static async getAllBetting(options, req) {
+    //     return await paginate(Betting, {}, options.page, options.limit, req);
+    // }
 
     static async getBettingById(id) {
         return await Betting.findById(id);
@@ -24,7 +34,7 @@ class BettingRepository {
     }
 
     static async getLatestBettingDataOfUser(bettingId) {
-        return await Betting.findOne({ betting_id: bettingId }).exec();
+        return await Betting.find({ bettingId: bettingId }).exec();
     }
 
     static async getLatestBettingId() {
@@ -33,106 +43,6 @@ class BettingRepository {
 
     static async getBetsAfterCreatedAt(createdAt) {
         return await Betting.find({ createdAt: { $gt: new Date(createdAt) } });
-    }
-
-    static async getBettingsStats(gameName = null) {
-        const regexGameName = gameName ? new RegExp(gameName, "i") : null;
-        const matchTodayStage = {
-            createdAt: { $gte: new Date().setHours(0, 0, 0, 0) },
-            ...(regexGameName && { gameName: regexGameName }),
-        };
-        const matchAllStage = regexGameName ? { gameName: regexGameName } : {};
-
-        const aggregateSum = async (matchStage, field) => {
-            const result = await Betting.aggregate([
-                { $match: matchStage },
-                { $group: { _id: null, total: { $sum: field } } },
-            ]);
-            return result.length > 0 ? result[0].total : 0;
-        };
-
-        const [todayAmount, totalAmount, todayWinAmount, totalWinAmount] =
-            await Promise.all([
-                aggregateSum(matchTodayStage, "$amount"),
-                aggregateSum(matchAllStage, "$amount"),
-                aggregateSum(matchTodayStage, "$winAmount"),
-                aggregateSum(matchAllStage, "$winAmount"),
-            ]);
-        return { todayAmount, totalAmount, todayWinAmount, totalWinAmount };
-    }
-
-    static async getBettingDashboardStats() {
-        const aggregateStats = async (matchStage) => {
-            const result = await Betting.aggregate([
-                {
-                    $match: { ...matchStage, status: { $in: ["BetApplied", "BetWon"] } },
-                },
-                {
-                    $group: {
-                        _id: null,
-                        totalAmount: { $sum: "$amount" },
-                        totalWinAmount: { $sum: "$winAmount" },
-                    },
-                },
-            ]);
-            const { totalAmount = 0, totalWinAmount = 0 } = result[0] || {};
-            const profit = totalAmount - totalWinAmount;
-            return { totalAmount, totalWinAmount, profit };
-        };
-        const todayStart = new Date();
-        todayStart.setUTCHours(0, 0, 0, 0);
-        const [todayStats, totalStats] = await Promise.all([
-            aggregateStats({
-                createdAt: {
-                    $gte: todayStart,
-                    $lt: new Date(todayStart.getTime() + 86400000),
-                },
-            }),
-            aggregateStats({}),
-        ]);
-        const defaultStats = { totalAmount: 0, totalWinAmount: 0, profit: 0 };
-        const formatStats = (stats) => ({
-            totalAmount: stats.totalAmount || defaultStats.totalAmount,
-            totalWinAmount: stats.totalWinAmount || defaultStats.totalWinAmount,
-            profit: stats.profit || defaultStats.profit,
-        });
-        const data = {
-            todayAmount: formatStats(todayStats).totalAmount,
-            totalAmount: formatStats(totalStats).totalAmount,
-            todayWinAmount: formatStats(todayStats).totalWinAmount,
-            totalWinAmount: formatStats(totalStats).totalWinAmount,
-            todayProfit: formatStats(todayStats).profit,
-            totalProfit: formatStats(totalStats).profit,
-        };
-        return data;
-    }
-
-    static async getGraphStats(startDate, endDate) {
-        const matchStage = {
-            createdAt: {
-                $gte: new Date(startDate),
-                $lte: new Date(new Date(endDate).setHours(23, 59, 59, 999)),
-            },
-        };
-        const aggregateStats = (format) => {
-            return Betting.aggregate([
-                { $match: matchStage },
-                {
-                    $group: {
-                        _id: { $dateToString: { format, date: "$createdAt" } },
-                        totalAmount: { $sum: "$amount" },
-                        totalWinAmount: { $sum: "$winAmount" },
-                        totalProfit: { $sum: { $subtract: ["$amount", "$winAmount"] } },
-                    },
-                },
-                { $sort: { _id: 1 } },
-            ]);
-        };
-        const dailyStats = aggregateStats("%Y-%m-%d");
-        const weeklyStats = aggregateStats("%Y-%U");
-        const monthlyStats = aggregateStats("%Y-%m");
-        const yearlyStats = aggregateStats("%Y");
-        return Promise.all([dailyStats, weeklyStats, monthlyStats, yearlyStats]);
     }
 
     static async updateBettingById(id, bettingData) {
@@ -178,10 +88,34 @@ class BettingRepository {
     }
 
     // create winner logic
-    static async getBettingData(createdAt) {
+    // static async getBettingData(bettingId) {
+    //     try {
+    //         const bettingData = await Betting.find({
+    //             createdAt: new Date(createdAt),
+    //         });
+    //         return bettingData;
+    //     } catch (error) {
+    //         console.error("Error fetching betting data:", error);
+    //         throw new Error("Failed to fetch betting data.");
+    //     }
+    // }
+
+    static async getBettingData(bettingId, userId) {
         try {
+            const betting = await Betting.findOne({ "bettingId": bettingId });
+            console.log("betting", betting);
+            if (!betting) {
+                throw new Error("Betting record not found.");
+            }
+
+            const toTime = betting.createdAt;
+            const fromTime = new Date(toTime.getTime() - 60 * 1000);
             const bettingData = await Betting.find({
-                createdAt: new Date(createdAt),
+                //user: userId,
+                createdAt: {
+                    $gte: fromTime.toISOString(),
+                    $lte: toTime.toISOString(),
+                },
             });
             return bettingData;
         } catch (error) {
@@ -190,55 +124,60 @@ class BettingRepository {
         }
     }
 
-    static async updateBettingWinnerStatus(characterData) {
-        await Betting.updateOne(
-            {
-                betting_id: characterData.betting_id, // Add betting_id condition
-                "character.character_id": characterData.character_id, // Match the nested object
-            },
-            {
-                $set: {
-                    "character.$.win_amount": characterData.win_amount, // Update win_amount in matched object
-                    "character.$.status": characterData.status,
-                    game_status: "Completed", // Update game_status
-                },
-            }
-        );
 
+    static async updateBettingWinnerStatus(characterData) {
+        console.log("characterData --++ == ", characterData)
         await Betting.updateOne(
             {
-                betting_id: characterData.betting_id,
+                bettingId: characterData.bettingId, // Add betting_id condition
+                characterId: characterData.characterId, // Match the nested object
             },
             {
                 $set: {
-                    "character.$[elem].status": "Looser", // Mark remaining as 'Loser'
+                    winAmount: characterData.winAmount, // Update win_amount in matched object
+                    characterStatus: characterData.characterStatus,
+                    gameStatus: "Completed", // Update game_status
+                    gameId: characterData.gameId
                 },
-            },
-            {
-                arrayFilters: [
-                    { "elem.character_id": { $ne: characterData.character_id } },
-                ], // Exclude the winner
             }
         );
     }
 
+    // static async bettingHistory(userId) {
+    //     return await Betting.find({
+    //         userId: userId,
+    //         gameStatus: "Completed",
+    //         //characterStatus: "Winner",
+    //     })
+    //         .sort({ createdAt: -1 })
+    //         .select(
+    //             "userId gameId userName characterId betAmount winAmount bettingId"
+    //         );
+    // }
+
     static async bettingHistory(userId) {
-        return await Betting.find({
+        // Step 1: Get all completed bets for the user
+        const userBets = await Betting.find({
             userId: userId,
-            gameStatus: "Complete",
-            characterStatus: "Winner",
+            gameStatus: "Completed",
+        }).sort({ createdAt: -1 });
+
+        const gameIds = [...new Set(userBets.map(bet => bet.gameId))];
+
+        const winnerRecords = await Betting.find({
+            gameId: { $in: gameIds },
+            characterStatus: "Winner"
         })
-            .sort({ createdAt: -1 })
-            .select(
-                "userId gameId userName characterId betAmount winAmount bettingId"
-            );
+            .select("userId gameId userName characterId betAmount winAmount bettingId");
+
+        return winnerRecords;
     }
 
     static async bettingHistoryByGameIdAndUserId(userId, gameId) {
         return await Betting.find({
             userId: userId,
             gameId: gameId,
-            gameStatus: "Complete",
+            gameStatus: "Completed",
         })
             .sort({ createdAt: -1 })
             .select(
@@ -281,6 +220,29 @@ class BettingRepository {
     }
 
     
+
+    static async isGameIdExists(gameId) {
+        const existing = await Betting.findOne({ where: { gameId } });
+        return !!existing;
+    }
+
+    static async updateLooserGameStatusAndGameId(bettingId, gameId) {
+        await Betting.updateMany(
+            {
+                bettingId: bettingId,
+                characterStatus: { $ne: "Winner" }, // Exclude winners
+            },
+            {
+                $set: {
+                    gameId: gameId,
+                    characterStatus: "Looser",
+                    gameStatus: "Completed"
+                }
+            }
+        );
+    }
+
+
 }
 
 

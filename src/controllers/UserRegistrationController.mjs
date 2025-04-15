@@ -14,6 +14,7 @@ class UserRegistrationController {
     static async createUser(req, res) {
         try {
             const userData = await UserRegistrationController.validateUserData(req);
+            console.log("userData --", userData);
             const user = await UserRepository.createUser(userData);
             res.status(201).json({
                 statusCode: 201,
@@ -116,6 +117,7 @@ class UserRegistrationController {
                 message: `OTP sent to your email.thi is your otp ${otp}`,
             });
         } catch (error) {
+            console.log("error --", error);
             CommonHandler.catchError(error, res);
         }
     }

@@ -31,7 +31,7 @@ router.put('/updateBettingById/:id', BettingController.updateBettingById);
 router.delete('/deleteBettingById/:id', BettingController.deleteBettingById);
 
 // get betting winner
-router.get('/getBettingStatus', BettingController.getBettingStatus);
+router.get('/getBettingStatus', Middleware.user, BettingController.getBettingStatus);
 
 //get betting history
 router.get('/getBettingHistory', Middleware.user, BettingController.getBettingHistory);
@@ -41,7 +41,7 @@ router.get('/getBettingHistoryByGameId', Middleware.user, BettingController.getB
 // Route to get betting stats for a user
 // router.get('/betting/:userId/stats',Middleware.user, BettingController.getBettingSumByUser);
 // Route to get betting stats for a user
-router.get('/betting/:userId',Middleware.user, BettingController.getBettingSumByUser);
+router.get('/betting/:userId', Middleware.user, BettingController.getBettingSumByUser);
 
 
 

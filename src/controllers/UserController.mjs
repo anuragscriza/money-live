@@ -80,7 +80,7 @@ class UserController {
                 totalWins: 20,
                 totalDeposit: totalDeposit,
                 totalWithdrawal: 0,
-                totalCoin:totalDeposit - totalBetAmount.totalBetAmount,
+                totalCoin: totalDeposit - totalBetAmount.totalBetAmount,
                 image: userData.image,
                 address: userData.address,
                 country: userData.country,
@@ -122,11 +122,10 @@ class UserController {
 
     static async gameStarted(req, res) {
         try {
-            const { userId } = req.params;
-            //const gameDateTime = req.body.game_started
+            const userId = req.user.userId;
             const isoDate = new Date().toISOString();
             const updatedUser = await UserRepository.updateUserByUserId(userId, { "game_started": isoDate });
-            res.status(200).json({ status: 200, success: true, message: `Data updated successfully for userId ${userId}`, updatedUser });
+            res.status(200).json({ status: 200, success: true, message: `Game started successfully for userId ${userId}`, updatedUser });
         } catch (error) {
             CommonHandler.catchError(error, res);
         }

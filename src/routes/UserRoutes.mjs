@@ -27,14 +27,14 @@ router.post('/changePassword', UserRegistrationController.changePassword);
 
 // GET /Route to get
 
-router.put('/startGame/:userId', UserController.gameStarted);
+router.put('/startGame', Middleware.user, UserController.gameStarted);
 
 
 
-router.get("/getProfile",Middleware.user, UserController.getUserProfile);
+router.get("/getProfile", Middleware.user, UserController.getUserProfile);
 
 //Put /Route to Update
- router.put("/updateUser",Middleware.user, UserController.updateUserByUserId);
+router.put("/updateUser", Middleware.user, UserController.updateUserByUserId);
 
 
 

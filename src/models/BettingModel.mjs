@@ -37,8 +37,8 @@ import { Schema, model } from 'mongoose';
 
 const BettingSchema = new Schema({
     userId: { type: Number, required: true },
-    bettingId: { type: Number, default: () => Math.floor(100000 + Math.random() * 900000), unique: true },
-    gameId: { type: Number, required: true },
+    bettingId: { type: Number, required: true },
+    gameId: { type: Number, required: false, default: null },
     userName: { type: String, required: true },
     characterId: { type: Number, required: true },
     betAmount: { type: Number, required: true },
