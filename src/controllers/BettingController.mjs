@@ -615,6 +615,7 @@ class BettingController {
             });
         }
     }
+    
 }
 
 export default BettingController;

@@ -54,12 +54,12 @@ class UserController {
         const totalDeposit = await RechargeRepository.getTotalRecharge(userId);
         const totalBetAmount = await BettingRepository.getBettingSumByUserId(userId);
         const userData = await UserRepository.getUserByUserId(userId);
-        console.log(totalDeposit);
+        console.log(userData);
         let userProfile = {
             fullName: userData.fullName,
             email: userData.email,
             mobile: userData.mobile,
-            totalWins: 0,
+            totalWins: userData.totalWin,
             totalCoin: totalDeposit - totalBetAmount.totalBetAmount,
             totalDeposit: totalDeposit,
             totalWithdrawal: 0,

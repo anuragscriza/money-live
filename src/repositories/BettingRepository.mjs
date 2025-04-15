@@ -256,6 +256,33 @@ class BettingRepository {
             ? { totalBetAmount: result[0].totalBetAmount, }
             : { totalAmount: 0 };
     }
+    // Calculate total match wins for a user
+    static async getTotalMatchWinsByUserId(userId) {
+        try {
+            // Find all completed bets for the user with characterStatus "Winner" and gameStatus "Completed"
+            const result = await Betting.aggregate([
+                {
+                    $match: {
+                        userId: userId,
+                        gameStatus: "Completed",  // Assuming the game is completed
+                        "character.status": "Winner",  // Assuming the character's status is 'Winner'
+                    },
+                },
+                {
+                    $count: "matchWins", // Count the number of wins
+                },
+            ]);
+
+            // Return match wins count or 0 if no matches found
+            return result.length > 0 ? result[0].matchWins : 0;
+        } catch (error) {
+            throw new Error(`Error calculating match wins for user: ${error.message}`);
+        }
+    }
+
+    
 }
+
+
 
 export default BettingRepository;

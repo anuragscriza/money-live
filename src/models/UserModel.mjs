@@ -43,8 +43,11 @@ const userSchema = new Schema({
     fullName: { type: String, require: true },
     country: { type: String, default: "" },
     address: { type: String, default: "" },
-    totalLoss: { type: String, default: 0 },
+    totalLoss: { type: Number, default: 0 },
     userName: { type: String, default: "" },
+    totalWin: { type: Number, default: 0 },
+
+    
 }, {
     timestamps: true,
     toJSON: {
