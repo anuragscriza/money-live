@@ -17,9 +17,6 @@ router.post('/distributionWalletDetails', BettingController.distributionWalletDe
 // GET /Route to get all Betting with pagination
 router.get('/getAllBetting', BettingController.getAllBetting);
 
-// GET /Route to fetch total sums of amount and winAmount
-router.get('/getBettingsStats', BettingController.getBettingsStats);
-
 // GET /Route to get a latest Betting by its betting ID
 //router.get('/getDetailsForLatestBettingId', BettingController.getDetailsForLatestBettingId);
 
@@ -42,8 +39,5 @@ router.get('/getBettingHistoryByGameId', Middleware.user, BettingController.getB
 // router.get('/betting/:userId/stats',Middleware.user, BettingController.getBettingSumByUser);
 // Route to get betting stats for a user
 router.get('/betting/:userId', Middleware.user, BettingController.getBettingSumByUser);
-
-
-
 
 export default router;   

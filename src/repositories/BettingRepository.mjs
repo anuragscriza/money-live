@@ -103,7 +103,7 @@ class BettingRepository {
     static async getBettingData(bettingId, userId) {
         try {
             const betting = await Betting.findOne({ "bettingId": bettingId });
-            console.log("betting", betting);
+            //console.log("betting", betting);
             if (!betting) {
                 throw new Error("Betting record not found.");
             }
@@ -126,11 +126,12 @@ class BettingRepository {
 
 
     static async updateBettingWinnerStatus(characterData) {
-        console.log("characterData --++ == ", characterData)
+        console.log("characterData -- ", characterData);
         await Betting.updateOne(
             {
                 bettingId: characterData.bettingId, // Add betting_id condition
                 characterId: characterData.characterId, // Match the nested object
+                userId: characterData.userId
             },
             {
                 $set: {
